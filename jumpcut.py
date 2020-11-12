@@ -64,7 +64,7 @@ if __name__ == "__main__":
     print("creating subprocesses...")
 
     processes = [Process(target=sidetask, \
-        args = ("chunk{i}.mp4", i, \
+        args = ("chunk%d.mp4"%i, i, \
                 KEEP_SILENCE, DCB_THRESHOLD, \
                 SILENT_LENGTH , return_array[i], \
                 )) for i in range(PROCESS_COUNT)]
@@ -73,10 +73,11 @@ if __name__ == "__main__":
     print("starting subprocesses...")
     for i in range(PROCESS_COUNT):
         processes[i].start()
+        processes[i].join()
 
     
 
-    print("running subprocesses...")
+    print("running  subprocesses...")
     for i in range(PROCESS_COUNT):
         processes[i].join()
         print("process %i saved %d seconds" % (i, return_array[i].value))
