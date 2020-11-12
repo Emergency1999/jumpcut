@@ -7,7 +7,7 @@ import sys
 def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved):
     # -------------------------------------------------- setup and extrecting 
 
-    sys.setrecursionlimit(15000)
+    
     main_clip = VideoFileClip(file_name)
 
     dotIndex = file_name.rfind(".")
@@ -42,7 +42,7 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,retu
     main_clip.write_videofile(filename=file_name)
 
     os.remove(output_audio_name)
-    print("{processs_nr} Finished")
+    print(f"{process_nr} Finished")
     return_time_saved.value = time_saved
     main_clip.close()
     
