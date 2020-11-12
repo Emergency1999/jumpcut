@@ -33,7 +33,6 @@ if __name__ == "__main__":
     DCB_THRESHOLD = args.dcb_threshold
     KEEP_SILENCE = args.keep_silence
     SILENT_LENGTH = args.silent_length
-    PROCESS_COUNT = 2 #todo add to parameters
 
     assert INPUT_FILE is not None, "why u put no input file, that dum"
     if OUTPUT_FILE is None:
@@ -49,6 +48,9 @@ if __name__ == "__main__":
     length = main_clip.duration #todo set maximum length to avoid errors
     main_clip.close()
 
+    # PROCESS_COUNT = 2 
+    PROCESS_COUNT = math.ceil(length/120) #todo add to parameters
+
     print("video lenth: " + str(length) + "s")
     seconds = math.ceil(length / PROCESS_COUNT)
     print("cutting video to " + str(PROCESS_COUNT) + " " + str(seconds) + "s chunks...\n\n")
@@ -56,33 +58,37 @@ if __name__ == "__main__":
     command = "ffmpeg -i " + INPUT_FILE + \
         " -c copy -map 0 -segment_time " + str(seconds) + \
         " -f segment chunk%d.mp4"
-    subprocess.call(command, shell=True, cwd=None)
+    # subprocess.call(command, shell=True, cwd=None)
+
     #todo check if all segments exist
     print("\n\ncreated ")
     # -------------------------------------------------- PROCESSES
-    manager = Manager()
-    return_array = [Value('i', 0) for i in range(PROCESS_COUNT)]
+    # manager = Manager()
+    # return_array = [Value('i', 0) for i in range(PROCESS_COUNT)]
 
     print("creating subprocesses...")
 
-    processes = [Process(target=sidetask, \
-        args = ("chunk%d.mp4"%i, i, \
-                KEEP_SILENCE, DCB_THRESHOLD, \
-                SILENT_LENGTH , return_array[i], \
-                )) for i in range(PROCESS_COUNT)]
+    # processes = [Process(target=sidetask, \
+    #     args = ("chunk%d.mp4"%i, i, \
+    #             KEEP_SILENCE, DCB_THRESHOLD, \
+    #             SILENT_LENGTH , return_array[i], \
+    #             )) for i in range(PROCESS_COUNT)]
 
 
     print("starting subprocesses...")
-    for i in range(PROCESS_COUNT):
-        processes[i].start()
-        processes[i].join()
+    # for i in range(PROCESS_COUNT):
+    #     processes[i].start()
+    #     processes[i].join()
 
+    # for i in range(PROCESS_COUNT):
+    #     sidetask("chunk%d.mp4"%i, i, KEEP_SILENCE, DCB_THRESHOLD, SILENT_LENGTH)
     
+    sidetask("chunk%d.mp4"%2, 2, KEEP_SILENCE, DCB_THRESHOLD, SILENT_LENGTH)
 
     print("running  subprocesses...")
-    for i in range(PROCESS_COUNT):
-        processes[i].join()
-        print("process %i saved %d seconds" % (i, return_array[i].value))
+    # for i in range(PROCESS_COUNT):
+    #     processes[i].join()
+    #     print("process %i saved %d seconds" % (i, return_array[i].value))
 
 
     # -------------------------------------------------- COMBINE

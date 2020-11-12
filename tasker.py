@@ -3,7 +3,7 @@ from moviepy.editor import *
 import os
 from pydub import AudioSegment
 
-def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved):
+def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length):#,return_time_saved):
     # -------------------------------------------------- setup and extrecting 
 
     
@@ -42,6 +42,6 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,retu
 
     os.remove(output_audio_name)
     print(f"{process_nr} Finished")
-    return_time_saved.value = time_saved
+    # return_time_saved.value = time_saved
     main_clip.close()
-    
+
