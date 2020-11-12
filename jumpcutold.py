@@ -53,10 +53,4 @@ if __name__ == '__main__':
     command = "ffmpeg -i " + args.input_file + \
         "-c copy -map 0 -segment_time 00:20:00 -f segment " + args.output_file
     subprocess.call(command, shell=True)
-
-    
-
-
-
-
     t=time.time()
