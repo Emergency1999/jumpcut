@@ -6,6 +6,7 @@ from pydub import AudioSegment
 def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved):
     # -------------------------------------------------- setup and extrecting 
 
+    
     main_clip = VideoFileClip(file_name)
 
     dotIndex = file_name.rfind(".")
@@ -40,7 +41,7 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,retu
     main_clip.write_videofile(filename=file_name)
 
     os.remove(output_audio_name)
-    print("\n%d Finished\n" % process_nr)
-    return_time_saved.value = int(time_saved)
+    print(f"{process_nr} Finished")
+    return_time_saved.value = time_saved
     main_clip.close()
     
