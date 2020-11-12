@@ -44,4 +44,5 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,retu
     os.remove(output_audio_name)
     print("{processs_nr} Finished")
     return_time_saved.value = time_saved
-    exit(0)
+    main_clip.close()
+    
