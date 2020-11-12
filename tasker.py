@@ -2,7 +2,7 @@ from pydub import silence
 from moviepy.editor import *
 import os
 from pydub import AudioSegment
-
+import sys
 
 def sidetask(para_dict):
     # -------------------------------------------------- setup and extrecting audio, file_name, process_nr, keep_silence, dcb_offset, silent_length
