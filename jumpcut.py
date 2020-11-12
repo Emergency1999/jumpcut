@@ -1,6 +1,6 @@
 import time
 import math
-import sys
+# import sys
 import argparse
 import subprocess
 from moviepy.editor import *
@@ -12,7 +12,7 @@ from tasker import sidetask
 #     return
 
 if __name__ == "__main__":
-    sys.setrecursionlimit(15000)
+    # sys.setrecursionlimit(15000)
     # -------------------------------------------------- ARGS
     parser = argparse.ArgumentParser(
         description="Modifies a video file to cut out silence.")
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     DCB_THRESHOLD = args.dcb_threshold
     KEEP_SILENCE = args.keep_silence
     SILENT_LENGTH = args.silent_length
-    PROCESS_COUNT = 2
+    PROCESS_COUNT = 2 #todo add to parameters
 
     assert INPUT_FILE is not None, "why u put no input file, that dum"
     if OUTPUT_FILE is None:
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     # get length in seconds (float)
     main_clip = VideoFileClip(INPUT_FILE)
-    length = main_clip.duration
+    length = main_clip.duration #todo set maximum length to avoid errors
     main_clip.close()
 
     print("video lenth: " + str(length) + "s")
@@ -56,8 +56,8 @@ if __name__ == "__main__":
     command = "ffmpeg -i " + INPUT_FILE + \
         " -c copy -map 0 -segment_time " + str(seconds) + \
         " -f segment chunk%d.mp4"
-    subprocess.call(command, shell=True)
-
+    subprocess.call(command, shell=True, cwd=None)
+    #todo check if all segments exist
     print("\n\ncreated ")
     # -------------------------------------------------- PROCESSES
     manager = Manager()
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 KEEP_SILENCE, DCB_THRESHOLD, \
                 SILENT_LENGTH , return_array[i], \
                 )) for i in range(PROCESS_COUNT)]
-    
+
 
     print("starting subprocesses...")
     for i in range(PROCESS_COUNT):
@@ -86,7 +86,9 @@ if __name__ == "__main__":
 
 
     # -------------------------------------------------- COMBINE
+    #todo combine
 
+    #todo delete temp files
 
     Tnow = time.time()-t
     print("\nfinished in %f seconds" % (Tnow))
