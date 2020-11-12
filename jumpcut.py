@@ -1,5 +1,6 @@
 import time
 import math
+import sys
 import argparse
 import subprocess
 from moviepy.editor import *
@@ -11,6 +12,7 @@ from tasker import sidetask
 #     return
 
 if __name__ == "__main__":
+    sys.setrecursionlimit(15000)
     # -------------------------------------------------- ARGS
     parser = argparse.ArgumentParser(
         description="Modifies a video file to cut out silence.")
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     DCB_THRESHOLD = args.dcb_threshold
     KEEP_SILENCE = args.keep_silence
     SILENT_LENGTH = args.silent_length
-    PROCESS_COUNT = 4
+    PROCESS_COUNT = 2
 
     assert INPUT_FILE is not None, "why u put no input file, that dum"
     if OUTPUT_FILE is None:
