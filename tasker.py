@@ -4,9 +4,9 @@ import os
 from pydub import AudioSegment
 import sys
 
-def sidetask(para_dict):
-    # -------------------------------------------------- setup and extrecting audio, file_name, process_nr, keep_silence, dcb_offset, silent_length
-    file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved = para_dict
+def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved):
+    # -------------------------------------------------- setup and extrecting 
+
     sys.setrecursionlimit(15000)
     main_clip = VideoFileClip(file_name)
 
