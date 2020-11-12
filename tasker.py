@@ -1,7 +1,12 @@
+from pydub import silence
+from moviepy.editor import *
+import os
+from pydub import AudioSegment
 
 
-def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length):
-    # -------------------------------------------------- setup and extrecting audio
+def sidetask(dict):
+    # -------------------------------------------------- setup and extrecting audio file_name, process_nr, keep_silence, dcb_offset, silent_length
+    file_name, process_nr, keep_silence, dcb_offset, silent_length,return_time_saved = dict
     sys.setrecursionlimit(15000)
     main_clip = VideoFileClip(file_name)
 
@@ -31,7 +36,6 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length):
                     [0]) / 1000) - 2*keep_silence
         print(f"{x}")
 
-
     time_saved = starting_length - main_clip.duration
 
     print(f"before:{int(starting_length)}  after:{int(main_clip.duration)}  "
@@ -39,5 +43,6 @@ def sidetask(file_name, process_nr, keep_silence, dcb_offset, silent_length):
     main_clip.write_videofile(filename=file_name)
 
     os.remove(output_audio_name)
-    print("Finished")
-    exit(time_saved)
+    print("{processs_nr} Finished")
+    return_time_saved.value = time_saved
+    exit(0)
