@@ -1,5 +1,4 @@
 import argparse
-import subprocess
 
 import os
 import time
@@ -50,6 +49,7 @@ if OUTPUT_FILE is None:
     dotIndex = INPUT_FILE.rfind(".")
     OUTPUT_FILE = INPUT_FILE[:dotIndex]+"_ALTERED"+INPUT_FILE[dotIndex:]
 
+t = time.time()
 # -------------------------------------------------- CREATE TEMP FOLDER
 
 createPath(TEMP_PATH)
@@ -58,9 +58,7 @@ print(f"    cutting Video of length {video_length}")
 
 # -------------------------------------------------- EXTRACT AUDIO
 
-command = "ffmpeg -i " + '"' + INPUT_FILE + '"' + \
-        " -ab 160k -ac 2 -ar 44100 -vn " + TEMP_PATH + "audio.wav"
-subprocess.call(command, shell=True)
+ffmpeg_get_audio(INPUT_FILE, TEMP_PATH + "audio.wav")
 
 # -------------------------------------------------- FIND SILENCE
 
@@ -93,7 +91,7 @@ f = open(TEMP_PATH + "list.txt", "a")
 for start, end in arr_audio_s:
     print(f"\n    task {i} cutting...\n")
     name = "chunk" + str(i) + ".mp4"
-    cut_from_original(INPUT_FILE, TEMP_PATH + name, start, end)
+    ffmpeg_cut_from_original(INPUT_FILE, TEMP_PATH + name, start, end)
     f.writelines("file '" + name + "'\n")
     i+=1
 f.close()
@@ -101,15 +99,14 @@ f.close()
 # -------------------------------------------------- COMBINE CHUNKS
 time.sleep(1)
 print(f"\n    combining...\n")
-command = "ffmpeg -f concat -safe 0 -i '" + TEMP_PATH + "list.txt' -c copy '" + OUTPUT_FILE + "'"
-print(command)
-subprocess.call(command, shell=True)
+ffmpeg_combile(TEMP_PATH + "list.txt", OUTPUT_FILE)
 
 # -------------------------------------------------- DELETE TEMP FOLDER
 
 print(f"\n    deleting temp files...\n")
-#! deletePath(TEMP_PATH)
+deletePath(TEMP_PATH)
 
 # -------------------------------------------------- FINISHED
 
-print("\n    finished!\n")
+Tnow = time.time()-t
+print("\nfinished in %f seconds" % (Tnow))

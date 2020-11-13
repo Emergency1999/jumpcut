@@ -17,6 +17,16 @@ def get_video_length(file_name):
     clip.close()
     return duration
 
-def cut_from_original(file_input, file_output, start, end):
-    command = "ffmpeg -i " + '"' + file_input + '" -ss ' + str(start) + " -to " + str(end) + ' "' + file_output + '"'
+def ffmpeg_get_audio(file_input, file_output):
+    command = "ffmpeg -i \"" + file_input + \
+            "\" -ab 160k -ac 2 -ar 44100 -vn \"" + file_output + "\""
+    subprocess.call(command, shell=True)
+
+def ffmpeg_cut_from_original(file_input, file_output, start, end):
+    command = "ffmpeg -i \"" + file_input + "\" -ss " + str(start) + " -to " + str(end) + " \"" + file_output + "\""
+    subprocess.call(command, shell=True)
+
+
+def ffmpeg_combile(file_input, file_output):
+    command = "ffmpeg -f concat -safe 0 -i \"" + file_input + "\" -c copy \"" + file_output + "\"" #todo give option to run without -c copy to fully compress (takes longer)
     subprocess.call(command, shell=True)
