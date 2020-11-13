@@ -2,6 +2,7 @@ import argparse
 import subprocess
 
 import os
+import time
 import shutil
 
 from silencer import *
@@ -28,7 +29,7 @@ def createPath(s):
 parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
 parser.add_argument("-i", "--input_file",       type = str,                      help = "the video file you want modified")
 parser.add_argument("-o", "--output_file",      type = str,                      help = "the output file")
-parser.add_argument("-t", "--temp_path",        type = str,     default="TEMP/", help = "the output file")
+parser.add_argument("-t", "--temp_path",        type = str,     default="TEMP/", help = "the temp directory")
 parser.add_argument("-d", "--dcb_threshold",    type = int,     default=10,      help = "the threshold accepted as \"silence\" in dcb")
 parser.add_argument("-k", "--keep_silence",     type = float,   default=0.2,     help = "amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length",    type = int,     default=500,     help = "the miminum amount of silence in ms")
@@ -86,24 +87,29 @@ for x, y in arr_silence_ms:
 print(f"\n    created  {len(arr_audio_s)} parts\n")
 
 # -------------------------------------------------- CUT CHUNKS FROM ORIGINAL
+
 i = 0
 f = open(TEMP_PATH + "list.txt", "a")
 for start, end in arr_audio_s:
-    path = TEMP_PATH + "chunk" + str(i) + ".mp4"
-    cut_from_original(INPUT_FILE, path, start, end)
-    f.writelines(path+"\n")
+    print(f"\n    task {i} cutting...\n")
+    name = "chunk" + str(i) + ".mp4"
+    cut_from_original(INPUT_FILE, TEMP_PATH + name, start, end)
+    f.writelines("file '" + name + "'\n")
     i+=1
 f.close()
 
 # -------------------------------------------------- COMBINE CHUNKS
-
-command = "ffmpeg -f concat -safe 0 -i " + TEMP_PATH + "list.txt -c copy " + '"' + OUTPUT_FILE + '"'
+time.sleep(1)
+print(f"\n    combining...\n")
+command = "ffmpeg -f concat -safe 0 -i '" + TEMP_PATH + "list.txt' -c copy '" + OUTPUT_FILE + "'"
+print(command)
 subprocess.call(command, shell=True)
 
 # -------------------------------------------------- DELETE TEMP FOLDER
 
+print(f"\n    deleting temp files...\n")
 #! deletePath(TEMP_PATH)
 
 # -------------------------------------------------- FINISHED
 
-print("finished")
+print("\n    finished!\n")
