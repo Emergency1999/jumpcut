@@ -1,6 +1,8 @@
 from pydub import silence
 from pydub import AudioSegment
 from moviepy.editor import *
+import subprocess
+
 
 def silencer(audio_wav, dcb_offset=10, silent_length=500,step_in_ms=10):
     Pure_audio = AudioSegment.from_wav(audio_wav)
@@ -12,6 +14,9 @@ def silencer(audio_wav, dcb_offset=10, silent_length=500,step_in_ms=10):
 def get_video_length(file_name):
     clip = VideoFileClip(file_name)
     duration = clip.duration
-    clip.close
+    clip.close()
     return duration
-     
+
+def cut_from_original(file_input, file_output, start, end):
+    command = "ffmpeg -i " + '"' + file_input + '" -ss ' + str(start) + " -to " + str(end) + ' "' + file_output + '"'
+    subprocess.call(command, shell=True)
