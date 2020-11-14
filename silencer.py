@@ -26,18 +26,19 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     # create temp file with filter_complex_script
     f = open(temp_file, "a")
     i = 0
-    first = timearray.pop(0)
-    f.write(f"[0:v]trim=start={str(first[0])}:end={str(first[1])},setpts=PTS-STARTPTS[vout{i}]")
-    f.write(f";[0:a]atrim=start={str(first[0])}:end={str(first[1])},asetpts=PTS-STARTPTS[aout{i}]")
     for start, end in timearray:
+        f.write(f"[0:v]trim=start={str(start)}:end={str(end)},setpts=PTS-STARTPTS[vpart{i}];")
+        f.write(f"[0:a]atrim=start={str(start)}:end={str(end)},asetpts=PTS-STARTPTS[apart{i}];")
         i+=1
-        f.write(f";[0:v]trim=start={str(start)}:end={str(end)},setpts=PTS-STARTPTS[vpart{i}]")
-        f.write(f";[0:a]atrim=start={str(start)}:end={str(end)},asetpts=PTS-STARTPTS[apart{i}]")
-        f.write(f";[vout{i-1}][aout{i-1}][vpart{i}][apart{i}]concat=n=2:v=1:a=1[vout{i}][aout{i}]")
+    length = i
+    i = 0
+    for i in range(length):
+        f.write(f"[vpart{i}][apart{i}]")
+    f.write(f"concat=n={length}:v=1:a=1[vout][aout]")
     f.close()
 
     # execute script
-    command = f"ffmpeg -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout{i}] -map [aout{i}] \"{file_output}\""
+    command = f"ffmpeg -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
 
