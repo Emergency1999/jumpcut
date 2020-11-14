@@ -115,7 +115,7 @@ class Videocutter:
         ffmpeg_get_audio(self.input_path + self.input_file, self.temp_folder + "audio.wav")
 
     def detect_silence(self):
-        self.arr_silence_ms = silencer(self.temp_folder + "audio.wav", DCB_THRESHOLD, SILENT_LENGTH, SEEK_STEP)
+        self.arr_silence_ms = silencer(self.temp_folder + "audio.wav", self.dcb_threshold, self.silent_length, self.seek_step)
         self.arr_silence_ms.append((self.video_length, self.video_length))
 
     def create_arr_audio_s(self):
@@ -124,8 +124,8 @@ class Videocutter:
             start = last
             end = x / 1000
             if end - start > 0.01:
-                start = max(start - KEEP_SILENCE, 0)
-                end = min(end + KEEP_SILENCE, self.video_length)
+                start = max(start - self.keep_silence, 0)
+                end = min(end + self.keep_silence, self.video_length)
                 self.arr_audio_s.append((round(start, 3), round(end, 3)))
             last = y / 1000
 
