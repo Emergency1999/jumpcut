@@ -42,7 +42,6 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     # print(command)
     subprocess.call(command, shell=True)
 
-
 def ffmpeg_cut_from_original(file_input, file_output, start, end):
     command = f"ffmpeg -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
     subprocess.call(command, shell=True)
