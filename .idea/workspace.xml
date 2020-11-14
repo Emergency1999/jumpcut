@@ -19,11 +19,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="+ INPUT OUTPUT folder">
+    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="save delete">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/INPUT/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OUTPUT/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/silencer.py" beforeDir="false" afterPath="$PROJECT_DIR$/silencer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jumpcut.py" beforeDir="false" afterPath="$PROJECT_DIR$/jumpcut.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +38,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="develop" />
+        <entry key="$PROJECT_DIR$" value="features" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -105,17 +103,15 @@
       <option name="project" value="LOCAL" />
       <updated>1605322166453</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="audio now works">
+      <created>1605353605435</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1605353605435</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
-  </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -132,7 +128,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="put everything into a class called Video&#10;new input folder for multiple videos&#10;removed Temp argument now integrated in class&#10;auto cleanup of temp folder" />
     <MESSAGE value="+ INPUT OUTPUT folder" />
-    <option name="LAST_COMMIT_MESSAGE" value="+ INPUT OUTPUT folder" />
+    <MESSAGE value="audio now works" />
+    <option name="LAST_COMMIT_MESSAGE" value="audio now works" />
   </component>
   <component name="WindowStateProjectService">
     <state x="92" y="92" width="1736" height="896" key="DiffContextDialog" timestamp="1605298550937">
@@ -147,13 +144,17 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="92" y="92" width="1736" height="896" key="ShowDiffWithBranchDialog/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605298550937" />
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605322173667">
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605354115052">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605322173667" />
-    <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605280418026">
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605354115052" />
+    <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605353805736">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605280418026" />
+    <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605353805736" />
+    <state x="593" y="137" width="672" height="678" key="search.everywhere.popup" timestamp="1605354676326">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="593" y="137" width="672" height="678" key="search.everywhere.popup/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605354676326" />
   </component>
 </project>

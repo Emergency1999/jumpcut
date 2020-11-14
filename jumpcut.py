@@ -43,9 +43,11 @@ class Video:
         self.video_length = get_video_length(input_path + input_file)
         self.arr_silence_ms = []
         self.arr_audio_s = []
+        self.start_time = None
 
     def __del__(self):
-        shutil.rmtree(self.temp_folder)
+
+        deletePath(self.temp_folder)
         # deleting Temp folder
 
     def extract_audio(self):
@@ -72,11 +74,21 @@ class Video:
                          , temp_file=self.temp_folder + "script.txt", timearray=self.arr_audio_s)
 
     def work(self):
+        self.start_time = time.time()
         self.extract_audio()
         self.detect_silence()
         self.create_arr_audio_s()
         self.cut_array()
+        self.debugger()
 
+    def debugger(self):
+        if DEBUG_MODE:
+            Tnow = time.time() - self.start_time
+            print("Output debug information")
+            f = open('debug.txt', 'a+')
+            f.write(
+                f"{round(self.video_length / Tnow, 2):5.5}x speed: {round(Tnow, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_path}{self.input_file}\n")
+            f.close()
 
 # -------------------------------------------------- ARGS
 
@@ -90,6 +102,7 @@ parser.add_argument("-k", "--keep_silence", type=float, default=0.2,
                     help="amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
+parser.add_argument("-dm", "--debug_mode", type=bool, default= False, help="enables/disables debug information")
 
 args = parser.parse_args()
 INPUT_DIR = args.input_path
@@ -101,6 +114,7 @@ KEEP_SILENCE = args.keep_silence
 SILENT_LENGTH = args.silent_length
 SEEK_STEP = args.seek_step
 INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
+DEBUG_MODE = args.debug_mode
 OUTPUT_FILES_NAMES = []
 
 assert (INPUT_FILE is not None) or (len(INPUT_FILES_NAMES) > 0), "why u put no input file-s, that dum"
