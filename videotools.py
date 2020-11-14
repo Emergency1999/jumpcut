@@ -5,26 +5,41 @@ import subprocess
 import shutil
 import time
 
-def deletePath(s):
+# -------------------------------------------------- FUNCTIONS
+
+# ------------------------- file/directory
+
+def delete_path(s):
     try:
         shutil.rmtree(s, ignore_errors=False)
     except OSError:
         print(f"Deletion of the directory {s} failed")
         print(OSError)
 
-def createPath(s):
-    if os.path.exists(s):
-        deletePath(s)
+def create_path(s):
     try:
         os.mkdir(s)
     except OSError:
         assert False, f"Creation of the directory {s} failed. (The TEMP folder may already exist. Delete or rename it, and try again.)"
 
+def create_clear_path(s):
+    if os.path.exists(s):
+        deletePath(s)
+    createPath(s)
+
+def secure_path(s):
+    if not os.path.exists(s):
+        createPath(s)
+
+
 def output_name(name):
     dot_index = name.rfind(".")
     return name[:dot_index] + "_ALTERED" + name[dot_index:]
 
+def extract_filename(path):
+    return os.path.splitext(os.path.basename(path))[0]
 
+# ------------------------- video/audio
 
 def silence_finder(audio_wav, dcb_offset=10, silent_length=500,step_in_ms=10):
     Pure_audio = AudioSegment.from_wav(audio_wav)
@@ -36,6 +51,8 @@ def get_video_length(file_name):
     duration = clip.duration
     clip.close()
     return duration
+
+# -------------------------------------------------- FFMPEG
 
 def ffmpeg_get_audio(file_input, file_output):
     command = f"ffmpeg -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
@@ -72,17 +89,19 @@ def ffmpeg_combile(file_input, file_output):
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
-    def __init__(self, input_file, output_path="", input_path="", output_file=None):
+    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, debug_mode=False):
         self.input_file = input_file
-        if output_file:
-            self.output_file = output_file
-        else:
-            self.output_file = input_file[0:-4] + "_sil.mp4"
-        self.input_path = input_path
-        self.output_path = output_path
-        self.temp_folder = "TEMP_" + input_file[:-4] + "/"
-        createPath("TEMP_" + input_file[:-4])
-        self.video_length = get_video_length(input_path + input_file)
+        self.output_file = output_file
+        self.temp_folder = temp_folder
+
+        self.dcb_threshold = dcb_threshold
+        self.keep_silence = keep_silence
+        self.silent_length = silent_length
+        self.seek_step = seek_step
+        self.debug_mode = debug_mode
+        self.video_length = get_video_length(input_file)
+        
+        create_clear_path(temp_folder)
         self.arr_silence_ms = []
         self.arr_audio_s = []
         self.start_time = None
@@ -124,7 +143,7 @@ class Videocutter:
         self.debugger()
 
     def debugger(self):
-        if DEBUG_MODE:
+        if self.debug_mode:
             t_now = time.time() - self.start_time
             print("Output debug information")
             f = open('debug.txt', 'a+')
