@@ -33,6 +33,7 @@ parser.add_argument("-d", "--dcb_threshold",    type = int,     default=10,     
 parser.add_argument("-k", "--keep_silence",     type = float,   default=0.2,     help = "amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length",    type = int,     default=500,     help = "the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step",        type = int,     default=10,      help = "the audio step size in ms")
+parser.add_argument("--debug_file",             type = str,     default="",      help = "outputs debug information into file")
 
 args = parser.parse_args()
 
@@ -43,11 +44,16 @@ DCB_THRESHOLD = args.dcb_threshold
 KEEP_SILENCE = args.keep_silence
 SILENT_LENGTH = args.silent_length
 SEEK_STEP = args.seek_step
+DEBUG_FILE = args.debug_file
 
 assert INPUT_FILE is not None, "why u put no input file, that dum"
 if OUTPUT_FILE is None:
     dotIndex = INPUT_FILE.rfind(".")
     OUTPUT_FILE = INPUT_FILE[:dotIndex]+"_ALTERED"+INPUT_FILE[dotIndex:]
+    i = 0
+    while os.path.exists(OUTPUT_FILE):
+        OUTPUT_FILE = INPUT_FILE[:dotIndex]+"_ALTERED_"+str(i)+INPUT_FILE[dotIndex:]
+        i+=1
 
 t = time.time()
 # -------------------------------------------------- CREATE TEMP FOLDER
@@ -113,5 +119,13 @@ print(f"\n    deleting temp files...\n")
 
 # -------------------------------------------------- FINISHED
 
+
+    
 Tnow = time.time()-t
 print("\nfinished in %f seconds" % (Tnow))
+
+# debug file
+if DEBUG_FILE:
+    f = open(DEBUG_FILE, "a")
+    f.write(f"{round(video_length/Tnow, 2):5.5}x speed: {round(Tnow, 2):8}s needed for {round(video_length, 2):8}s file: {INPUT_FILE}\n")
+    f.close()
