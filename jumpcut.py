@@ -134,4 +134,4 @@ for vid in video_arr:
     vid.work()
 
 Tnow = time.time() - t
-print("\nfinished in %f seconds" % (Tnow))
+print(f"\nFinished in {Tnow} seconds")
