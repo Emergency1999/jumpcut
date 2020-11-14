@@ -25,8 +25,8 @@ def createPath(s):
 
 
 def output_name(name):
-    dotIndex = name.rfind(".")
-    return name[:dotIndex] + "_ALTERED" + name[dotIndex:]
+    dot_index = name.rfind(".")
+    return name[:dot_index] + "_ALTERED" + name[dot_index:]
 
 
 class Video:
@@ -83,12 +83,13 @@ class Video:
 
     def debugger(self):
         if DEBUG_MODE:
-            Tnow = time.time() - self.start_time
+            t_now = time.time() - self.start_time
             print("Output debug information")
             f = open('debug.txt', 'a+')
             f.write(
-                f"{round(self.video_length / Tnow, 2):5.5}x speed: {round(Tnow, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_path}{self.input_file}\n")
+                f"{round(self.video_length / t_now, 2):5.5}x speed: {round(t_now, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_path}{self.input_file}\n")
             f.close()
+
 
 # -------------------------------------------------- ARGS
 
@@ -102,7 +103,7 @@ parser.add_argument("-k", "--keep_silence", type=float, default=0.2,
                     help="amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
-parser.add_argument("-dm", "--debug_mode", type=bool, default= False, help="enables/disables debug information")
+parser.add_argument("-dm", "--debug_mode", type=bool, default=False, help="enables/disables debug information")
 
 args = parser.parse_args()
 INPUT_DIR = args.input_path

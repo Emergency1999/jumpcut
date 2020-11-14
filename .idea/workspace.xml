@@ -19,7 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="save delete">
+    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="added debug flag and mode">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jumpcut.py" beforeDir="false" afterPath="$PROJECT_DIR$/jumpcut.py" afterDir="false" />
     </list>
@@ -110,7 +110,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605353605435</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added debug flag and mode">
+      <created>1605360389171</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1605360389171</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -129,7 +136,8 @@
     <MESSAGE value="put everything into a class called Video&#10;new input folder for multiple videos&#10;removed Temp argument now integrated in class&#10;auto cleanup of temp folder" />
     <MESSAGE value="+ INPUT OUTPUT folder" />
     <MESSAGE value="audio now works" />
-    <option name="LAST_COMMIT_MESSAGE" value="audio now works" />
+    <MESSAGE value="added debug flag and mode" />
+    <option name="LAST_COMMIT_MESSAGE" value="added debug flag and mode" />
   </component>
   <component name="WindowStateProjectService">
     <state x="92" y="92" width="1736" height="896" key="DiffContextDialog" timestamp="1605298550937">
@@ -144,10 +152,10 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="92" y="92" width="1736" height="896" key="ShowDiffWithBranchDialog/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605298550937" />
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605354115052">
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605360395379">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605354115052" />
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605360395379" />
     <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605353805736">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
