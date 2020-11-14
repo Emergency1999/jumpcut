@@ -85,9 +85,6 @@ for x, y in arr_silence_ms:
         arr_audio_s.append((round(start, 3), round(end, 3)))
     last = y/1000
 
-# for i in range(len(arr_audio_s)):
-#     print(str(arr_silence_ms[i]) + " -> " + str(arr_audio_s[i]))
-
 print(f"\n    created  {len(arr_audio_s)} parts\n")
 
 # -------------------------------------------------- CUT CHUNKS FROM ORIGINAL
@@ -96,30 +93,12 @@ print(f"\n    cutting...\n")
 
 ffmpeg_cut_array(INPUT_FILE, OUTPUT_FILE, TEMP_PATH + "script.txt",  arr_audio_s)
 
-# i = 0
-# for start, end in arr_audio_s:
-#     print(f"\n    task {i} cutting...\n")
-
-#     name = "chunk" + str(i) + ".mp4"
-#     ffmpeg_cut_from_original(INPUT_FILE, TEMP_PATH + name, start, end)
-#     "file '" + name + "'\n"
-
-#     i+=1
-    
-
-# -------------------------------------------------- COMBINE CHUNKS
-# time.sleep(1)
-# print(f"\n    combining...\n")
-# ffmpeg_combile(TEMP_PATH + "list.txt", OUTPUT_FILE)
-
 # -------------------------------------------------- DELETE TEMP FOLDER
 
 print(f"\n    deleting temp files...\n")
 #! deletePath(TEMP_PATH)
 
 # -------------------------------------------------- FINISHED
-
-
     
 Tnow = time.time()-t
 print("\nfinished in %f seconds" % (Tnow))
