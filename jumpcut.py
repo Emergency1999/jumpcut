@@ -114,6 +114,7 @@ DCB_THRESHOLD = args.dcb_threshold
 KEEP_SILENCE = args.keep_silence
 SILENT_LENGTH = args.silent_length
 SEEK_STEP = args.seek_step
+
 INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
 DEBUG_MODE = args.debug_mode
 OUTPUT_FILES_NAMES = []
@@ -135,3 +136,7 @@ for vid in video_arr:
 
 Tnow = time.time() - t
 print(f"\nFinished in {Tnow} seconds")
+
+#    f = open(DEBUG_FILE, "a")
+#    f.write(f"{round(video_length/Tnow, 2):5.5}x speed: {round(Tnow, 2):8}s needed for {round(video_length, 2):8}s file: {INPUT_FILE}\n")
+#    f.close()
