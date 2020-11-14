@@ -19,7 +19,12 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="put everything into a class called Video&#10;new input folder for multiple videos&#10;removed Temp argument now integrated in class&#10;auto cleanup of temp folder" />
+    <list default="true" id="301df498-eec9-4134-b9ff-0566d14c6a6f" name="Default Changelist" comment="+ INPUT OUTPUT folder">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/INPUT/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/OUTPUT/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/silencer.py" beforeDir="false" afterPath="$PROJECT_DIR$/silencer.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -93,7 +98,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605321770319</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="+ INPUT OUTPUT folder">
+      <created>1605322166453</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1605322166453</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
@@ -119,7 +131,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="put everything into a class called Video&#10;new input folder for multiple videos&#10;removed Temp argument now integrated in class&#10;auto cleanup of temp folder" />
-    <option name="LAST_COMMIT_MESSAGE" value="put everything into a class called Video&#10;new input folder for multiple videos&#10;removed Temp argument now integrated in class&#10;auto cleanup of temp folder" />
+    <MESSAGE value="+ INPUT OUTPUT folder" />
+    <option name="LAST_COMMIT_MESSAGE" value="+ INPUT OUTPUT folder" />
   </component>
   <component name="WindowStateProjectService">
     <state x="92" y="92" width="1736" height="896" key="DiffContextDialog" timestamp="1605298550937">
@@ -134,10 +147,10 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="92" y="92" width="1736" height="896" key="ShowDiffWithBranchDialog/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605298550937" />
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605321868499">
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2" timestamp="1605322173667">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605321868499" />
+    <state x="552" y="272" key="Vcs.Push.Dialog.v2/1920.0.1366.768/0.0.1920.1080@0.0.1920.1080" timestamp="1605322173667" />
     <state x="777" y="453" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605280418026">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
