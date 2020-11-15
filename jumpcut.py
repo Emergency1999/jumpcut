@@ -57,8 +57,7 @@ elif len(INPUT_FILES_NAMES) > 0:
     for input_filename in INPUT_FILES_NAMES:
         filename = extract_filename(input_filename)
         output_filename = customize_filename(input_filename, OUTPUT_APPEND)
-
-        add_video(INPUT_DIR+input_filename, OUTPUT_DIR+input_filename, TEMP_DIR[:-1]+"-"+filename+"/")
+        add_video(INPUT_DIR+input_filename, OUTPUT_DIR+output_filename, TEMP_DIR[:-1]+"-"+filename+"/")
 
 for vid in video_arr:
     vid.work()

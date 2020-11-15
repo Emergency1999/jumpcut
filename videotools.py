@@ -152,7 +152,7 @@ class Videocutter:
     def debugger(self):
         if self.debug_mode:
             t_now = time.time() - self.start_time
-            print("Output debug information")
+            print(f"outputting debug information to {self.debug_mode}...")
             f = open(self.debug_mode, 'a')
-            f.write(f"{round(self.video_length / t_now, 2):5.5}x speed: {round(t_now, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_file}\n")
+            f.write(f"{round(self.video_length / t_now, 2):5.2f}x speed: {round(t_now, 2):8.2f}s needed for {round(self.video_length, 2):8.2f}s file: {self.input_file}\n")
             f.close()
