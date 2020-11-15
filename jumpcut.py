@@ -9,8 +9,8 @@ from videotools import *
 parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
 parser.add_argument("-i", "--input_file", type=str, help="the video file you want modified")
 parser.add_argument("-o", "--output_file", type=str, help="the output file")
-parser.add_argument("-id", "--input_directory", type=str, default="input/", help="the input directory")
-parser.add_argument("-od", "--output_directory", type=str, default="output/", help="the output directory")
+parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory")
+parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory")
 parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired")
 parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
 
@@ -18,6 +18,7 @@ parser.add_argument("-d", "--dcb_threshold", type=int, default=10, help="the thr
 parser.add_argument("-k", "--keep_silence", type=float, default=0.2, help="amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
+parser.add_argument("-c", "--chunksize", type=int, default=50, help="the videopart chunk size in which the video is split for cutting")
 parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given")
 
 args = parser.parse_args()
@@ -32,6 +33,7 @@ DCB_THRESHOLD = args.dcb_threshold
 KEEP_SILENCE = args.keep_silence
 SILENT_LENGTH = args.silent_length
 SEEK_STEP = args.seek_step
+CHUNKSIZE = args.chunksize
 
 INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
 DEBUG_MODE = args.debug_mode
@@ -44,7 +46,16 @@ t = time.time()
 
 video_arr = []
 def add_video(input_file, output_file, temp_folder):
-    video_arr.append(Videocutter(input_file=input_file, output_file=output_file, dcb_threshold=DCB_THRESHOLD, keep_silence=KEEP_SILENCE, silent_length=SILENT_LENGTH, seek_step=SEEK_STEP, temp_folder=temp_folder, debug_mode=DEBUG_MODE))
+    video_arr.append(Videocutter(   input_file=input_file, 
+                                    output_file=output_file, 
+                                    dcb_threshold=DCB_THRESHOLD, 
+                                    keep_silence=KEEP_SILENCE, 
+                                    silent_length=SILENT_LENGTH, 
+                                    seek_step=SEEK_STEP, 
+                                    temp_folder=temp_folder, 
+                                    chunksize=CHUNKSIZE, 
+                                    debug_mode=DEBUG_MODE))
+
 
 if INPUT_FILE is not None:
     # Filemode

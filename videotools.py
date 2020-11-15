@@ -4,6 +4,7 @@ from moviepy.editor import *
 import subprocess
 import shutil
 import time
+import math
 
 # -------------------------------------------------- FUNCTIONS
 
@@ -62,12 +63,12 @@ def get_video_length(file_name):
 # -------------------------------------------------- FFMPEG
 
 def ffmpeg_get_audio(file_input, file_output):
-    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
+    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     # create temp file with filter_complex_script
-    f = open(temp_file, "a")
+    f = open(temp_file, "w")
     i = 0
     for start, end in timearray:
         f.write(f"[0:v]trim=start={str(start)}:end={str(end)},setpts=PTS-STARTPTS[vpart{i}];")
@@ -81,22 +82,22 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     f.close()
 
     # execute script
-    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
+    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_from_original(file_input, file_output, start, end):
-    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
+    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
     subprocess.call(command, shell=True)
 
-def ffmpeg_combile(file_input, file_output):
-    command = f"ffmpeg -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
+def ffmpeg_combine(file_input, file_output):
+    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
     subprocess.call(command, shell=True)
 
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
-    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, debug_mode):
+    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, chunksize, debug_mode):
         self.input_file = input_file
         self.output_file = output_file
         self.temp_folder = temp_folder
@@ -106,17 +107,22 @@ class Videocutter:
         self.silent_length = silent_length
         self.seek_step = seek_step
         self.debug_mode = debug_mode
+        self.chunksize = chunksize
         self.video_length = get_video_length(input_file)
         
         create_clear_path(temp_folder)
         self.arr_silence_ms = []
         self.arr_audio_s = []
-        self.start_time = None
+
+        self.all_timer = None
+        self.timers = []
+        self.timer_name = None
+        self.timer = None
 
     def __del__(self):
-
-        delete_path(self.temp_folder)
         # deleting Temp folder
+        if not self.debug_mode:
+            delete_path(self.temp_folder)
 
     def extract_audio(self):
         ffmpeg_get_audio(self.input_file, self.temp_folder + "audio.wav")
@@ -136,23 +142,78 @@ class Videocutter:
                 self.arr_audio_s.append((round(start, 3), round(end, 3)))
             last = y / 1000
 
-    def cut_array(self):
+    def cut_chunk(self, chunk, nr):
         ffmpeg_cut_array(file_input=self.input_file,
-                         file_output=self.output_file
-                         , temp_file=self.temp_folder + "script.txt", timearray=self.arr_audio_s)
+                         file_output=self.temp_folder + f"chunk{nr}.mp4", 
+                         temp_file=self.temp_folder + "script.txt", 
+                         timearray=chunk)
+
+    def cut_array_in_chunks(self):
+        chunks = [self.arr_audio_s[i:i + self.chunksize] for i in range(0, len(self.arr_audio_s), self.chunksize)]
+        self.chunk_len = 0
+        for chunk in chunks:
+            print(f"cutting chunk {self.chunk_len+1}...")
+            self.cut_chunk(chunk, self.chunk_len)
+            self.chunk_len+=1
+
+    def combine_chunks(self):
+        f = open(self.temp_folder + "list.txt", 'w')
+        for nr in range(self.chunk_len):
+            f.write(f"file 'chunk{nr}.mp4'\n")
+        f.close()
+        ffmpeg_combine(self.temp_folder + "list.txt", self.output_file)
 
     def work(self):
-        self.start_time = time.time()
+        print(f"TASK {self.input_file} started")
+
+        print(f"extracting audio...")
+        self.all_timer = time.time()
+        self.start_timer("extract_audio")
         self.extract_audio()
+
+        print(f"detecting silence...")
+        self.start_timer("detect_silence")
         self.detect_silence()
+
+        print(f"{len(self.arr_silence_ms)} silences detected")
         self.create_arr_audio_s()
-        self.cut_array()
+        self.start_timer("create_arr_audio_s")
+        print(f"{len(self.arr_audio_s)} cuts necessary")
+
+        print(f"creating {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
+        self.start_timer("cut_array_in_chunks")
+        self.cut_array_in_chunks()
+
+        print(f"combining {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
+        self.start_timer("combine_chunks")
+        self.combine_chunks()
+
+        self.end_timer()
         self.debugger()
+        print(f"TASK {self.input_file} done\n")
+
+    def start_timer(self, name):
+        self.end_timer()
+        self.timer_name = name
+        self.timer = time.time()
+
+    def end_timer(self):
+        if self.timer_name:
+            t_now = time.time() - self.timer
+            self.timers.append({"name":self.timer_name, "time":round(t_now, 1)})
+            self.timer_name = None
+
+
 
     def debugger(self):
         if self.debug_mode:
-            t_now = time.time() - self.start_time
-            print(f"outputting debug information to {self.debug_mode}...")
+            string = ', '.join([f"{t['name']}: {t['time']:6.1f}" for t in self.timers])
+            print(f"debuginfo: {string}")
+
+
+            tges = time.time() - self.all_timer
             f = open(self.debug_mode, 'a')
-            f.write(f"{round(self.video_length / t_now, 2):5.2f}x speed: {round(t_now, 2):8.2f}s needed for {round(self.video_length, 2):8.2f}s file: {self.input_file}\n")
+            f.write(f"{round(self.video_length / tges, 2):5.2f}x speed: {round(tges, 2):8.2f}s needed for {round(self.video_length, 2):8.2f}s file: {self.input_file}\n")
+            f.write(f"{string}\n")
+            f.write(f"\n")
             f.close()
