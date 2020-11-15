@@ -15,6 +15,9 @@ def delete_path(s):
     except OSError:
         print(f"Deletion of the directory {s} failed")
         print(OSError)
+def delete_path_try(s):
+    if os.path.exists(s):
+        delete_path(s)
 
 def create_path(s):
     try:
@@ -24,12 +27,12 @@ def create_path(s):
 
 def create_clear_path(s):
     if os.path.exists(s):
-        deletePath(s)
-    createPath(s)
+        delete_path(s)
+    create_path(s)
 
 def secure_path(s):
     if not os.path.exists(s):
-        createPath(s)
+        create_path(s)
 
 
 def output_name(name):
@@ -55,7 +58,7 @@ def get_video_length(file_name):
 # -------------------------------------------------- FFMPEG
 
 def ffmpeg_get_audio(file_input, file_output):
-    command = f"ffmpeg -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
+    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
@@ -74,25 +77,27 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     f.close()
 
     # execute script
-    command = f"ffmpeg -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
+    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_from_original(file_input, file_output, start, end):
-    command = f"ffmpeg -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
+    command = f"ffmpeg -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
     subprocess.call(command, shell=True)
 
 def ffmpeg_combile(file_input, file_output):
-    command = f"ffmpeg -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
+    command = f"ffmpeg -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
     subprocess.call(command, shell=True)
 
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
-    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, debug_mode=False):
+    def __init__(self, input_file, output_file=None, temp_folder="TEMP/", dcb_threshold=10, keep_silence=0.2, silent_length=500, seek_step=10, debug_mode=False):
         self.input_file = input_file
         self.output_file = output_file
         self.temp_folder = temp_folder
+        if output_file is None:
+            self.output_file = extract_filename(input_file) + "_cut.mp4"
 
         self.dcb_threshold = dcb_threshold
         self.keep_silence = keep_silence
@@ -108,14 +113,14 @@ class Videocutter:
 
     def __del__(self):
 
-        deletePath(self.temp_folder)
+        delete_path(self.temp_folder)
         # deleting Temp folder
 
     def extract_audio(self):
-        ffmpeg_get_audio(self.input_path + self.input_file, self.temp_folder + "audio.wav")
+        ffmpeg_get_audio(self.input_file, self.temp_folder + "audio.wav")
 
     def detect_silence(self):
-        self.arr_silence_ms = silencer(self.temp_folder + "audio.wav", self.dcb_threshold, self.silent_length, self.seek_step)
+        self.arr_silence_ms = silence_finder(self.temp_folder + "audio.wav", self.dcb_threshold, self.silent_length, self.seek_step)
         self.arr_silence_ms.append((self.video_length, self.video_length))
 
     def create_arr_audio_s(self):
@@ -130,8 +135,8 @@ class Videocutter:
             last = y / 1000
 
     def cut_array(self):
-        ffmpeg_cut_array(file_input=self.input_path + self.input_file,
-                         file_output=self.output_path + self.output_file
+        ffmpeg_cut_array(file_input=self.input_file,
+                         file_output=self.output_file
                          , temp_file=self.temp_folder + "script.txt", timearray=self.arr_audio_s)
 
     def work(self):
@@ -146,7 +151,6 @@ class Videocutter:
         if self.debug_mode:
             t_now = time.time() - self.start_time
             print("Output debug information")
-            f = open('debug.txt', 'a+')
-            f.write(
-                f"{round(self.video_length / t_now, 2):5.5}x speed: {round(t_now, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_path}{self.input_file}\n")
+            f = open(self.debug_mode, 'a')
+            f.write(f"{round(self.video_length / t_now, 2):5.5}x speed: {round(t_now, 2):8}s needed for {round(self.video_length, 2):8}s file: {self.input_file}\n")
             f.close()
