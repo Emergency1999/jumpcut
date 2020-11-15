@@ -11,6 +11,7 @@ parser.add_argument("-i", "--input_file", type=str, help="the video file you wan
 parser.add_argument("-o", "--output_file", type=str, help="the output file")
 parser.add_argument("-id", "--input_directory", type=str, default="input/", help="the input directory")
 parser.add_argument("-od", "--output_directory", type=str, default="output/", help="the output directory")
+parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired")
 parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
 
 parser.add_argument("-d", "--dcb_threshold", type=int, default=10, help="the threshold accepted as \"silence\" in dcb")
@@ -24,6 +25,7 @@ INPUT_FILE = args.input_file
 OUTPUT_FILE = args.output_file
 INPUT_DIR = args.input_directory
 OUTPUT_DIR = args.output_directory
+OUTPUT_APPEND = args.output_append
 TEMP_DIR = args.temp_directory
 
 DCB_THRESHOLD = args.dcb_threshold
@@ -46,13 +48,16 @@ def add_video(input_file, output_file, temp_folder):
 
 if INPUT_FILE is not None:
     # Filemode
-    filename = extract_filename(INPUT_FILE)
+    if OUTPUT_FILE is None:
+        OUTPUT_FILE = customize_filename(INPUT_FILE, OUTPUT_APPEND)
     add_video(INPUT_FILE, OUTPUT_FILE, TEMP_DIR)
 elif len(INPUT_FILES_NAMES) > 0:
     # Foldermode
     secure_path(OUTPUT_DIR)
     for input_filename in INPUT_FILES_NAMES:
         filename = extract_filename(input_filename)
+        output_filename = customize_filename(input_filename, OUTPUT_APPEND)
+
         add_video(INPUT_DIR+input_filename, OUTPUT_DIR+input_filename, TEMP_DIR[:-1]+"-"+filename+"/")
 
 for vid in video_arr:

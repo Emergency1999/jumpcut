@@ -42,6 +42,10 @@ def output_name(name):
 def extract_filename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
+def customize_filename(path, appendstr):
+    a, b = os.path.splitext(path)
+    return a + appendstr + b
+
 # ------------------------- video/audio
 
 def silence_finder(audio_wav, dcb_offset=10, silent_length=500,step_in_ms=10):
@@ -92,13 +96,11 @@ def ffmpeg_combile(file_input, file_output):
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
-    def __init__(self, input_file, output_file=None, temp_folder="TEMP/", dcb_threshold=10, keep_silence=0.2, silent_length=500, seek_step=10, debug_mode=False):
+    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, debug_mode):
         self.input_file = input_file
         self.output_file = output_file
         self.temp_folder = temp_folder
-        if output_file is None:
-            self.output_file = extract_filename(input_file) + "_cut.mp4"
-
+        
         self.dcb_threshold = dcb_threshold
         self.keep_silence = keep_silence
         self.silent_length = silent_length
