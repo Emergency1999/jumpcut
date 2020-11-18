@@ -63,7 +63,7 @@ def get_video_length(file_name):
 # -------------------------------------------------- FFMPEG
 
 def ffmpeg_get_audio(file_input, file_output):
-    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -ab 160k -ac 2 -ar 44100 -vn \"{file_output}\""
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
@@ -82,16 +82,16 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     f.close()
 
     # execute script
-    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] \"{file_output}\""
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] -safe 0 \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
 
 def ffmpeg_cut_from_original(file_input, file_output, start, end):
-    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""
     subprocess.call(command, shell=True)
 
 def ffmpeg_combine(file_input, file_output):
-    command = f"ffmpeg -c:v h264_cuvid -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
+    command = f"ffmpeg -y -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
     subprocess.call(command, shell=True)
 
 # -------------------------------------------------- Videocutter
@@ -145,13 +145,14 @@ class Videocutter:
     def cut_chunk(self, chunk, nr):
         ffmpeg_cut_array(file_input=self.input_file,
                          file_output=self.temp_folder + f"chunk{nr}.mp4", 
-                         temp_file=self.temp_folder + "script.txt", 
+                         temp_file=self.temp_folder + f"script{nr}.txt", 
                          timearray=chunk)
 
     def cut_array_in_chunks(self):
         chunks = [self.arr_audio_s[i:i + self.chunksize] for i in range(0, len(self.arr_audio_s), self.chunksize)]
         self.chunk_len = 0
         for chunk in chunks:
+            self.start_timer(f"chunk_{self.chunk_len+1}")
             print(f"cutting chunk {self.chunk_len+1}...")
             self.cut_chunk(chunk, self.chunk_len)
             self.chunk_len+=1
@@ -177,11 +178,10 @@ class Videocutter:
 
         print(f"{len(self.arr_silence_ms)} silences detected")
         self.create_arr_audio_s()
-        self.start_timer("create_arr_audio_s")
+        self.start_timer("create_array")
         print(f"{len(self.arr_audio_s)} cuts necessary")
 
         print(f"creating {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
-        self.start_timer("cut_array_in_chunks")
         self.cut_array_in_chunks()
 
         print(f"combining {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
@@ -207,8 +207,8 @@ class Videocutter:
 
     def debugger(self):
         if self.debug_mode:
-            string = ', '.join([f"{t['name']}: {t['time']:6.1f}" for t in self.timers])
-            print(f"debuginfo: {string}")
+            string = ', '.join([f"{t['name']}: {t['time']:4.1f}" for t in self.timers])
+            print(f"debuginfo saved")
 
 
             tges = time.time() - self.all_timer
