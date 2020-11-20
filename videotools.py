@@ -95,13 +95,13 @@ class Videocutter:
         self.start_timer(timer_name)
 
     def work(self):
-        print(f"TASK {self.input_file} started")
+        print(f"TASK {self.input_file}")
         self.all_timer = time.time()
 
-        parts = math.ceil(self.video_length/(5*60))
+        parts = math.ceil(self.video_length/(self.chunksize))
         partlen = math.ceil(self.video_length/parts)
         # ------------------------------------------------------------ cr: create chunks
-        self.__new_part_print__(f"creating {parts} chunks...", "cc")
+        self.__new_part_print__(f"\tcreating {parts} chunks...", "cc")
         
         ffmpeg_segments(file_input=self.input_file,
                         file_output=self.temp_folder + "prechunk%d.mp4",
@@ -109,7 +109,8 @@ class Videocutter:
 
         # ------------------------------------------------------------ --: FOR (parts)
         for parti in range(parts):
-            print(f"\nCHUNK {parti}")
+            part_timer = time.time()
+            print(f"\tchunk {parti+1}/{parts}")
             file_in = self.temp_folder + f"prechunk{parti}.mp4"
             file_out = self.temp_folder + f"chunk{parti}.mp4"
             file_audio = self.temp_folder + f"audio{parti}.wav"
@@ -117,16 +118,15 @@ class Videocutter:
             file_in_len = get_video_length(file_in)
 
             # ------------------------------------------------------------ e : extract audio
-            self.__new_part_print__(f"extracting audio...", f"e{parti}")
+            self.__new_part_print__(f"\t\textracting audio...", f"e{parti}")
             ffmpeg_get_audio(file_in, file_audio)
 
             # ------------------------------------------------------------ d : detect silence
-            self.__new_part_print__(f"detecting silence...", f"d{parti}")
+            self.__new_part_print__(f"\t\tdetecting silence...", f"d{parti}")
             arr_silence_ms = silence_finder(file_audio, self.dcb_threshold, self.silent_length, self.seek_step)
             arr_silence_ms.append((file_in_len, file_in_len))
 
             # ------------------------------------------------------------ --: change array
-            print(f"{len(arr_silence_ms)} silences detected")
             arr_audio_s = []
             last = 0.0
             for x, y in arr_silence_ms:
@@ -138,19 +138,21 @@ class Videocutter:
                     arr_audio_s.append((round(start, 3), round(end, 3)))
                 last = y / 1000
 
-            print(f"{len(arr_audio_s)} cuts necessary")
+            print(f"\t\t{len(arr_silence_ms)} silences, {len(arr_audio_s)} cuts")
 
             # ------------------------------------------------------------ c : cut chunk
-            self.__new_part_print__(f"cutting chunk...", f"c{parti}")
+            self.__new_part_print__(f"\t\tcutting chunk...", f"c{parti}")
             ffmpeg_cut_array(file_input=file_in,
                             file_output=file_out, 
                             temp_file=file_script, 
                             timearray=arr_audio_s)
+            
+            print(f"\t\tchunk {parti+1} done in {round(time.time()-part_timer, 2)}s")
 
 
 
         # ------------------------------------------------------------ co: combine chunks
-        self.__new_part_print__(f"combining {math.ceil(len(arr_audio_s)/self.chunksize)} chunks...", "co")
+        self.__new_part_print__(f"\tcombining {parts} chunks...", "co")
         f = open(self.temp_folder + "list.txt", 'w')
         for parti in range(parts):
             file_out = f"chunk{parti}.mp4"
@@ -161,7 +163,8 @@ class Videocutter:
         # ------------------------------------------------------------ --: end
         self.end_timer()
         self.debugger()
-        print(f"TASK {self.input_file} done\n")
+        tges = time.time() - self.all_timer
+        print(f"\t{self.input_file} done in {round(tges,1)}s\n")
 
 
     def start_timer(self, name):
@@ -180,7 +183,7 @@ class Videocutter:
     def debugger(self):
         if self.debug_mode:
             string = ', '.join([f"{t['name']}: {t['time']:4.1f}" for t in self.timers])
-            print(f"debuginfo saved")
+            print(f"\tdebuginfo saved")
 
 
             tges = time.time() - self.all_timer

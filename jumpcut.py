@@ -9,16 +9,16 @@ from videotools import *
 parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
 parser.add_argument("-i", "--input_file", type=str, help="the video file you want modified")
 parser.add_argument("-o", "--output_file", type=str, help="the output file")
-parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory")
-parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory")
-parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired")
-parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
+parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory, needs to end with \"/\"")
+parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory, needs to end with \"/\"")
+parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired, \".\" means none")
+parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory, needs to end with \"/\"")
 
 parser.add_argument("-d", "--dcb_threshold", type=int, default=10, help="the threshold accepted as \"silence\" in dcb")
 parser.add_argument("-k", "--keep_silence", type=float, default=0.2, help="amount of distance from silence to audio in s")
 parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
-parser.add_argument("-c", "--chunksize", type=int, default=50, help="the videopart chunk size in which the video is split for cutting")
+parser.add_argument("-c", "--chunksize", type=int, default=240, help="the videopart chunk size in seconds which the video is split before cutting")
 parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given")
 
 args = parser.parse_args()
@@ -40,6 +40,7 @@ DEBUG_MODE = args.debug_mode
 OUTPUT_FILES_NAMES = []
 
 assert (INPUT_FILE is not None) or (len(INPUT_FILES_NAMES) > 0), "why u put no input file, that dum"
+OUTPUT_APPEND = OUTPUT_APPEND == "." if "" else OUTPUT_APPEND
 
 t = time.time()
 # -------------------------------------------------- creates arr of Vid class
@@ -70,10 +71,12 @@ elif len(INPUT_FILES_NAMES) > 0:
         output_filename = customize_filename(input_filename, OUTPUT_APPEND)
         add_video(INPUT_DIR+input_filename, OUTPUT_DIR+output_filename, TEMP_DIR[:-1]+"-"+filename+"/")
 
+print(f"{len(video_arr)} tasks created:\n")
+
 for vid in video_arr:
     vid.work()
 
 
 
 Tnow = time.time() - t
-print(f"\nFinished in {Tnow} seconds")
+print(f"\nFinished in {round(Tnow, 2)} seconds")
