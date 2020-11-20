@@ -109,7 +109,15 @@ class Videocutter:
             last = y / 1000
 
     def cut_chunk(self, chunk, nr):
-        ffmpeg_cut_array(file_input=self.input_file,
+        self.start_timer(f"e_chunk_{self.chunk_len+1}")
+        print(f"exporting chunk {self.chunk_len+1}...")
+        ffmpeg_cut( file_input=self.input_file,
+                    file_output=self.temp_folder + f"prechunk{nr}.mp4",
+                    start=chunk[0][0], end=chunk[-1][-1],
+                    additional_flag="-c copy -copyts")
+        self.start_timer(f"c_chunk_{self.chunk_len+1}")
+        print(f"cutting chunk {self.chunk_len+1}...")
+        ffmpeg_cut_array(file_input=self.temp_folder + f"prechunk{nr}.mp4",
                          file_output=self.temp_folder + f"chunk{nr}.mp4", 
                          temp_file=self.temp_folder + f"script{nr}.txt", 
                          timearray=chunk)
@@ -118,8 +126,6 @@ class Videocutter:
         chunks = [self.arr_audio_s[i:i + self.chunksize] for i in range(0, len(self.arr_audio_s), self.chunksize)]
         self.chunk_len = 0
         for chunk in chunks:
-            self.start_timer(f"chunk_{self.chunk_len+1}")
-            print(f"cutting chunk {self.chunk_len+1}...")
             self.cut_chunk(chunk, self.chunk_len)
             self.chunk_len+=1
 
