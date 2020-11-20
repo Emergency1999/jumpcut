@@ -1,8 +1,7 @@
 from pydub import silence
 from pydub import AudioSegment
 from moviepy.editor import *
-import subprocess
-import ownffmpeg
+from ownffmpeg import *
 import shutil
 import time
 import math

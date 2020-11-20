@@ -1,3 +1,5 @@
+import subprocess
+
 # -------------------------------------------------- FFMPEG
 
 def ffmpeg_get_audio(file_input, file_output):
@@ -6,9 +8,11 @@ def ffmpeg_get_audio(file_input, file_output):
 
 def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     # create temp file with filter_complex_script
+    full_length = 0
     f = open(temp_file, "w")
     i = 0
     for start, end in timearray:
+        full_length += end - start
         f.write(f"[0:v]trim=start={str(start)}:end={str(end)},setpts=PTS-STARTPTS[vpart{i}];")
         f.write(f"[0:a]atrim=start={str(start)}:end={str(end)},asetpts=PTS-STARTPTS[apart{i}];")
         i+=1
@@ -20,7 +24,7 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     f.close()
 
     # execute script
-    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -map [vout] -map [aout] -safe 0 \"{file_output}\""
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -safe 0 -map [vout] -map [aout] -to {full_length} \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
 
