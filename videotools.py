@@ -77,8 +77,8 @@ class Videocutter:
         self.video_length = get_video_length(input_file)
         
         create_clear_path(temp_folder)
-        self.arr_silence_ms = []
-        self.arr_audio_s = []
+        # arr_silence_ms = []
+        # arr_audio_s = []
 
         self.all_timer = None
         self.timers = []
@@ -90,79 +90,79 @@ class Videocutter:
         if not self.debug_mode:
             delete_path(self.temp_folder)
 
-    def extract_audio(self):
-        ffmpeg_get_audio(self.input_file, self.temp_folder + "audio.wav")
-
-    def detect_silence(self):
-        self.arr_silence_ms = silence_finder(self.temp_folder + "audio.wav", self.dcb_threshold, self.silent_length, self.seek_step)
-        self.arr_silence_ms.append((self.video_length, self.video_length))
-
-    def create_arr_audio_s(self):
-        last = 0.0
-        for x, y in self.arr_silence_ms:
-            start = last
-            end = x / 1000
-            if end - start > 0.01:
-                start = max(start - self.keep_silence, 0)
-                end = min(end + self.keep_silence, self.video_length)
-                self.arr_audio_s.append((round(start, 3), round(end, 3)))
-            last = y / 1000
-
-    def cut_chunk(self, chunk, nr):
-        self.start_timer(f"e_chunk_{self.chunk_len+1}")
-        print(f"exporting chunk {self.chunk_len+1}...")
-        ffmpeg_cut( file_input=self.input_file,
-                    file_output=self.temp_folder + f"prechunk{nr}.mp4",
-                    start=chunk[0][0], end=chunk[-1][-1],
-                    additional_flag="-c copy -copyts")
-        self.start_timer(f"c_chunk_{self.chunk_len+1}")
-        print(f"cutting chunk {self.chunk_len+1}...")
-        ffmpeg_cut_array(file_input=self.temp_folder + f"prechunk{nr}.mp4",
-                         file_output=self.temp_folder + f"chunk{nr}.mp4", 
-                         temp_file=self.temp_folder + f"script{nr}.txt", 
-                         timearray=chunk)
-
-    def cut_array_in_chunks(self):
-        chunks = [self.arr_audio_s[i:i + self.chunksize] for i in range(0, len(self.arr_audio_s), self.chunksize)]
-        self.chunk_len = 0
-        for chunk in chunks:
-            self.cut_chunk(chunk, self.chunk_len)
-            self.chunk_len+=1
-
-    def combine_chunks(self):
-        f = open(self.temp_folder + "list.txt", 'w')
-        for nr in range(self.chunk_len):
-            f.write(f"file 'chunk{nr}.mp4'\n")
-        f.close()
-        ffmpeg_combine(self.temp_folder + "list.txt", self.output_file)
+    def __new_part_print__(self, print_str, timer_name):
+        print(print_str)
+        self.start_timer(timer_name)
 
     def work(self):
         print(f"TASK {self.input_file} started")
-
-        print(f"extracting audio...")
         self.all_timer = time.time()
-        self.start_timer("extract_audio")
-        self.extract_audio()
 
-        print(f"detecting silence...")
-        self.start_timer("detect_silence")
-        self.detect_silence()
+        parts = math.ceil(self.video_length/(5*60))
+        partlen = math.ceil(self.video_length/parts)
+        # ------------------------------------------------------------ cr: create chunks
+        self.__new_part_print__(f"creating {parts} chunks...", "cc")
+        
+        ffmpeg_segments(file_input=self.input_file,
+                        file_output=self.temp_folder + "prechunk%d.mp4",
+                        segment_seconds=partlen)
 
-        print(f"{len(self.arr_silence_ms)} silences detected")
-        self.create_arr_audio_s()
-        self.start_timer("create_array")
-        print(f"{len(self.arr_audio_s)} cuts necessary")
+        # ------------------------------------------------------------ --: FOR (parts)
+        for parti in range(parts):
+            print(f"\nCHUNK {parti}")
+            file_in = self.temp_folder + f"prechunk{parti}.mp4"
+            file_out = self.temp_folder + f"chunk{parti}.mp4"
+            file_audio = self.temp_folder + f"audio{parti}.wav"
+            file_script = self.temp_folder + f"script{parti}.txt"
+            file_in_len = get_video_length(file_in)
 
-        print(f"creating {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
-        self.cut_array_in_chunks()
+            # ------------------------------------------------------------ e : extract audio
+            self.__new_part_print__(f"extracting audio...", f"e{parti}")
+            ffmpeg_get_audio(file_in, file_audio)
 
-        print(f"combining {math.ceil(len(self.arr_audio_s)/self.chunksize)} chunks...")
-        self.start_timer("combine_chunks")
-        self.combine_chunks()
+            # ------------------------------------------------------------ d : detect silence
+            self.__new_part_print__(f"detecting silence...", f"d{parti}")
+            arr_silence_ms = silence_finder(file_audio, self.dcb_threshold, self.silent_length, self.seek_step)
+            arr_silence_ms.append((file_in_len, file_in_len))
 
+            # ------------------------------------------------------------ --: change array
+            print(f"{len(arr_silence_ms)} silences detected")
+            arr_audio_s = []
+            last = 0.0
+            for x, y in arr_silence_ms:
+                start = last
+                end = x / 1000
+                if end - start > 0.01:
+                    start = max(start - self.keep_silence, 0)
+                    end = min(end + self.keep_silence, self.video_length)
+                    arr_audio_s.append((round(start, 3), round(end, 3)))
+                last = y / 1000
+
+            print(f"{len(arr_audio_s)} cuts necessary")
+
+            # ------------------------------------------------------------ c : cut chunk
+            self.__new_part_print__(f"cutting chunk...", f"c{parti}")
+            ffmpeg_cut_array(file_input=file_in,
+                            file_output=file_out, 
+                            temp_file=file_script, 
+                            timearray=arr_audio_s)
+
+
+
+        # ------------------------------------------------------------ co: combine chunks
+        self.__new_part_print__(f"combining {math.ceil(len(arr_audio_s)/self.chunksize)} chunks...", "co")
+        f = open(self.temp_folder + "list.txt", 'w')
+        for parti in range(parts):
+            file_out = f"chunk{parti}.mp4"
+            f.write(f"file '{file_out}'\n")
+        f.close()
+        ffmpeg_combine(self.temp_folder + "list.txt", self.output_file)
+
+        # ------------------------------------------------------------ --: end
         self.end_timer()
         self.debugger()
         print(f"TASK {self.input_file} done\n")
+
 
     def start_timer(self, name):
         self.end_timer()

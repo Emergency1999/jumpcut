@@ -35,3 +35,7 @@ def ffmpeg_cut_from_original(file_input, file_output, start, end):
 def ffmpeg_combine(file_input, file_output):
     command = f"ffmpeg -y -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
     subprocess.call(command, shell=True)
+
+def ffmpeg_segments(file_input, file_output, segment_seconds):
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -c copy -segment_time {segment_seconds} -f segment \"{file_output}\""
+    subprocess.call(command, shell=True)
