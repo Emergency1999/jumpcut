@@ -124,7 +124,7 @@ class Videocutter:
             # ------------------------------------------------------------ d : detect silence
             self.__new_part_print__(f"\t\tdetecting silence...", f"d{parti}")
             arr_silence_ms = silence_finder(file_audio, self.dcb_threshold, self.silent_length, self.seek_step)
-            arr_silence_ms.append((file_in_len, file_in_len))
+            arr_silence_ms.append([file_in_len*1000, file_in_len*1000])
 
             # ------------------------------------------------------------ --: change array
             arr_audio_s = []

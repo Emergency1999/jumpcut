@@ -9,10 +9,10 @@ from videotools import *
 parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
 parser.add_argument("-i", "--input_file", type=str, help="the video file you want modified")
 parser.add_argument("-o", "--output_file", type=str, help="the output file")
-parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory, needs to end with \"/\"")
-parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory, needs to end with \"/\"")
+parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory")
+parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory")
 parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired, \".\" means none")
-parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory, needs to end with \"/\"")
+parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
 
 parser.add_argument("-d", "--dcb_threshold", type=int, default=10, help="the threshold accepted as \"silence\" in dcb")
 parser.add_argument("-k", "--keep_silence", type=float, default=200, help="amount of distance from silence to audio in ms")
@@ -39,7 +39,11 @@ INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
 DEBUG_MODE = args.debug_mode
 OUTPUT_FILES_NAMES = []
 
+#make sure directories end with "/"
+[INPUT_DIR, OUTPUT_DIR, TEMP_DIR] = [(a+"/" if a[-1] != "/" else a) if a else a for a in [INPUT_DIR, OUTPUT_DIR, TEMP_DIR]]
+#check if input is given
 assert (INPUT_FILE is not None) or (len(INPUT_FILES_NAMES) > 0), "why u put no input file, that dum"
+#check if append is set to nothing (as the input "" is not accepted by the parser)
 OUTPUT_APPEND = OUTPUT_APPEND == "." if "" else OUTPUT_APPEND
 
 t = time.time()
