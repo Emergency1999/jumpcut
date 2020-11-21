@@ -15,10 +15,10 @@ parser.add_argument("-a", "--output_append", type=str, default="_cut", help="cha
 parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory, needs to end with \"/\"")
 
 parser.add_argument("-d", "--dcb_threshold", type=int, default=10, help="the threshold accepted as \"silence\" in dcb")
-parser.add_argument("-k", "--keep_silence", type=float, default=0.2, help="amount of distance from silence to audio in s")
+parser.add_argument("-k", "--keep_silence", type=float, default=200, help="amount of distance from silence to audio in ms")
 parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
 parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
-parser.add_argument("-c", "--chunksize", type=int, default=240, help="the videopart chunk size in seconds which the video is split before cutting")
+parser.add_argument("-c", "--chunksize", type=int, default=200, help="the videopart chunk size in seconds which the video is split before cutting")
 parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given")
 
 args = parser.parse_args()
@@ -30,7 +30,7 @@ OUTPUT_APPEND = args.output_append
 TEMP_DIR = args.temp_directory
 
 DCB_THRESHOLD = args.dcb_threshold
-KEEP_SILENCE = args.keep_silence
+KEEP_SILENCE = args.keep_silence / 1000
 SILENT_LENGTH = args.silent_length
 SEEK_STEP = args.seek_step
 CHUNKSIZE = args.chunksize
