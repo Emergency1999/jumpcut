@@ -2,5 +2,7 @@
 *.mp3
 *.wav
 *.txt
+__pycache__/
 .vscode/
 .idea/
+venv/
