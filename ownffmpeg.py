@@ -27,6 +27,7 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -safe 0 -map [vout] -map [aout] -to {full_length} \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
+    return full_length
 
 def ffmpeg_cut_from_original(file_input, file_output, start, end):
     command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} \"{file_output}\""

@@ -60,6 +60,10 @@ def get_video_length(file_name):
     clip.close()
     return duration
 
+# -------------------------------------------------- Chunkcutter
+
+
+
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
@@ -95,7 +99,7 @@ class Videocutter:
         self.start_timer(timer_name)
 
     def work(self):
-        print(f"TASK {self.input_file}")
+        print(f"TASK {extract_filename(self.input_file)}")
         self.all_timer = time.time()
 
         parts = math.ceil(self.video_length/(self.chunksize))
@@ -108,6 +112,7 @@ class Videocutter:
                         segment_seconds=partlen)
 
         # ------------------------------------------------------------ --: FOR (parts)
+        seconds_saved_all = 0
         for parti in range(parts):
             part_timer = time.time()
             print(f"\tchunk {parti+1}/{parts}")
@@ -135,6 +140,7 @@ class Videocutter:
                 if end - start > 0.01:
                     start = max(start - self.keep_silence, 0)
                     end = min(end + self.keep_silence, self.video_length)
+                    
                     arr_audio_s.append((round(start, 3), round(end, 3)))
                 last = y / 1000
 
@@ -142,12 +148,13 @@ class Videocutter:
 
             # ------------------------------------------------------------ c : cut chunk
             self.__new_part_print__(f"\t\tcutting chunk...", f"c{parti}")
-            ffmpeg_cut_array(file_input=file_in,
-                            file_output=file_out, 
-                            temp_file=file_script, 
-                            timearray=arr_audio_s)
-            
-            print(f"\t\tchunk {parti+1} done in {round(time.time()-part_timer, 2)}s")
+            file_out_len = ffmpeg_cut_array(   file_input=file_in,
+                                                file_output=file_out, 
+                                                temp_file=file_script, 
+                                                timearray=arr_audio_s)
+            seconds_saved = file_in_len-file_out_len
+            seconds_saved_all += seconds_saved
+            print(f"\t\tchunk {parti+1} done in {round(time.time()-part_timer, 2)}s. {seconds_saved:.1f}s removed: {seconds_saved/file_in_len*100:2.1f}%")
 
 
 
@@ -164,7 +171,7 @@ class Videocutter:
         self.end_timer()
         self.debugger()
         tges = time.time() - self.all_timer
-        print(f"\t{self.input_file} done in {round(tges,1)}s\n")
+        print(f"\t{extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s removed: {seconds_saved_all/self.video_length*100:2.1f}%\n")
 
 
     def start_timer(self, name):

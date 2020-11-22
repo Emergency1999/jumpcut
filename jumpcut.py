@@ -83,4 +83,4 @@ for vid in video_arr:
 
 
 Tnow = time.time() - t
-print(f"\nFinished in {round(Tnow, 2)} seconds")
+print(f"Finished in {round(Tnow, 2)} seconds")
