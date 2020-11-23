@@ -1,3 +1,4 @@
+from multiprocessing import Process, Value, Array
 from pydub import silence
 from pydub import AudioSegment
 from moviepy.editor import *
@@ -5,8 +6,18 @@ from ownffmpeg import *
 import shutil
 import time
 import math
+import sys
 
 # -------------------------------------------------- FUNCTIONS
+
+def progress(count, total, status='', bar_len=60):
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('[%s] %s%s : %s\r' % (bar, percents, '%', status))
+    sys.stdout.flush()
 
 # ------------------------- file/directory
 
@@ -62,12 +73,44 @@ def get_video_length(file_name):
 
 # -------------------------------------------------- Chunkcutter
 
+def Chunkcutter(file_in, file_out, file_audio, file_script, dcb_threshold, keep_silence, silent_length, seek_step, return_progress, return_seconds_saved):
+    file_in_len = get_video_length(file_in)
+    
+    # ------------------------------------------------------------ e : extract audio
+    ffmpeg_get_audio(file_in, file_audio)
+    return_progress.value = 0.02
+    # ------------------------------------------------------------ d : detect silence
+    arr_silence_ms = silence_finder(file_audio, dcb_threshold, silent_length, seek_step)
+    arr_silence_ms.append([file_in_len*1000, file_in_len*1000])
+
+    return_progress.value = 0.15
+    # ------------------------------------------------------------ --: change array
+    arr_audio_s = []
+    last = 0.0
+    for x, y in arr_silence_ms:
+        start = last
+        end = x / 1000
+        if end - start > 0.01:
+            start = max(start - keep_silence, 0)
+            end = min(end + keep_silence, file_in_len)
+            
+            arr_audio_s.append((round(start, 3), round(end, 3)))
+        last = y / 1000
+
+    # ------------------------------------------------------------ c : cut chunk
+    file_out_len = ffmpeg_cut_array(   file_input=file_in,
+                                        file_output=file_out, 
+                                        temp_file=file_script, 
+                                        timearray=arr_audio_s)
+    seconds_saved = file_in_len-file_out_len
+    return_seconds_saved.value = seconds_saved
+    return_progress.value = 1
 
 
 # -------------------------------------------------- Videocutter
 
 class Videocutter:
-    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, chunksize, debug_mode):
+    def __init__(self, input_file, output_file, temp_folder, dcb_threshold, keep_silence, silent_length, seek_step, parallel_max, chunksize, debug_mode):
         self.input_file = input_file
         self.output_file = output_file
         self.temp_folder = temp_folder
@@ -77,6 +120,7 @@ class Videocutter:
         self.silent_length = silent_length
         self.seek_step = seek_step
         self.debug_mode = debug_mode
+        self.parallel_max = parallel_max
         self.chunksize = chunksize
         self.video_length = get_video_length(input_file)
         
@@ -88,6 +132,8 @@ class Videocutter:
         self.timers = []
         self.timer_name = None
         self.timer = None
+        self.prog_max = 1
+        self.prog_val = 0
 
     def __del__(self):
         # deleting Temp folder
@@ -95,7 +141,7 @@ class Videocutter:
             delete_path(self.temp_folder)
 
     def __new_part_print__(self, print_str, timer_name):
-        print(print_str)
+        progress(self.prog_val, self.prog_max, status=print_str)
         self.start_timer(timer_name)
 
     def work(self):
@@ -104,62 +150,59 @@ class Videocutter:
 
         parts = math.ceil(self.video_length/(self.chunksize))
         partlen = math.ceil(self.video_length/parts)
+        self.prog_max = parts
         # ------------------------------------------------------------ cr: create chunks
-        self.__new_part_print__(f"\tcreating {parts} chunks...", "cc")
+        self.__new_part_print__(f"creating {parts} chunks...", "cc")
         
         ffmpeg_segments(file_input=self.input_file,
                         file_output=self.temp_folder + "prechunk%d.mp4",
                         segment_seconds=partlen)
 
         # ------------------------------------------------------------ --: FOR (parts)
+        self.__new_part_print__(f"creating {parts} workers...", "cw")
+        workers = []
+        work_progress = []
+        seconds_saved = []
         seconds_saved_all = 0
         for parti in range(parts):
             part_timer = time.time()
-            print(f"\tchunk {parti+1}/{parts}")
+            # print(f"\tchunk {parti+1}/{parts}")
             file_in = self.temp_folder + f"prechunk{parti}.mp4"
             file_out = self.temp_folder + f"chunk{parti}.mp4"
             file_audio = self.temp_folder + f"audio{parti}.wav"
             file_script = self.temp_folder + f"script{parti}.txt"
-            file_in_len = get_video_length(file_in)
 
-            # ------------------------------------------------------------ e : extract audio
-            self.__new_part_print__(f"\t\textracting audio...", f"e{parti}")
-            ffmpeg_get_audio(file_in, file_audio)
+            return_progress = Value('d', 0.0)
+            work_progress.append(return_progress)
+            val = Value('d', 0.0)
+            seconds_saved.append(val)
+            workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
 
-            # ------------------------------------------------------------ d : detect silence
-            self.__new_part_print__(f"\t\tdetecting silence...", f"d{parti}")
-            arr_silence_ms = silence_finder(file_audio, self.dcb_threshold, self.silent_length, self.seek_step)
-            arr_silence_ms.append([file_in_len*1000, file_in_len*1000])
+        unstarted = workers.copy()
+        while True:
+            running = list(filter(lambda w: w.is_alive(), workers))
+            prog = 0
+            for w in work_progress:
+                prog += w.value
 
-            # ------------------------------------------------------------ --: change array
-            arr_audio_s = []
-            last = 0.0
-            for x, y in arr_silence_ms:
-                start = last
-                end = x / 1000
-                if end - start > 0.01:
-                    start = max(start - self.keep_silence, 0)
-                    end = min(end + self.keep_silence, self.video_length)
-                    
-                    arr_audio_s.append((round(start, 3), round(end, 3)))
-                last = y / 1000
+            if len(running) < self.parallel_max and len(unstarted)>0:
+                unstarted.pop().start()
+                time.sleep(1)
+            
+            self.prog_val = prog
+            progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
+            if len(unstarted)+len(running) == 0:
+                break
+            time.sleep(1)
 
-            print(f"\t\t{len(arr_silence_ms)} silences, {len(arr_audio_s)} cuts")
+        for w in workers:
+            w.join()
 
-            # ------------------------------------------------------------ c : cut chunk
-            self.__new_part_print__(f"\t\tcutting chunk...", f"c{parti}")
-            file_out_len = ffmpeg_cut_array(   file_input=file_in,
-                                                file_output=file_out, 
-                                                temp_file=file_script, 
-                                                timearray=arr_audio_s)
-            seconds_saved = file_in_len-file_out_len
-            seconds_saved_all += seconds_saved
-            print(f"\t\tchunk {parti+1} done in {round(time.time()-part_timer, 2)}s. {seconds_saved:.1f}s removed: {seconds_saved/file_in_len*100:2.1f}%")
-
-
+        for s in seconds_saved:
+            seconds_saved_all += s.value
 
         # ------------------------------------------------------------ co: combine chunks
-        self.__new_part_print__(f"\tcombining {parts} chunks...", "co")
+        self.__new_part_print__(f"combining {parts} chunks...", "co")
         f = open(self.temp_folder + "list.txt", 'w')
         for parti in range(parts):
             file_out = f"chunk{parti}.mp4"
@@ -171,7 +214,7 @@ class Videocutter:
         self.end_timer()
         self.debugger()
         tges = time.time() - self.all_timer
-        print(f"\t{extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s removed: {seconds_saved_all/self.video_length*100:2.1f}%\n")
+        print(f"TASK {extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s removed: {seconds_saved_all/self.video_length*100:2.1f}%\n")
 
 
     def start_timer(self, name):
