@@ -10,7 +10,7 @@ import sys
 
 # -------------------------------------------------- FUNCTIONS
 
-def progress(count, total, status='', bar_len=60):
+def progress(count, total, status='', bar_len=50):
     filled_len = int(round(bar_len * count / float(total)))
 
     percents = round(100.0 * count / float(total), 1)
@@ -181,15 +181,17 @@ class Videocutter:
         unstarted = workers.copy()
         while True:
             running = list(filter(lambda w: w.is_alive(), workers))
+
+            if len(running) < self.parallel_max and len(unstarted)>0:
+                running.append(unstarted.pop())
+                running[-1].start()
+                time.sleep(1)
+            
             prog = 0
             for w in work_progress:
                 prog += w.value
-
-            if len(running) < self.parallel_max and len(unstarted)>0:
-                unstarted.pop().start()
-                time.sleep(1)
-            
             self.prog_val = prog
+
             progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
             if len(unstarted)+len(running) == 0:
                 break
@@ -202,7 +204,7 @@ class Videocutter:
             seconds_saved_all += s.value
 
         # ------------------------------------------------------------ co: combine chunks
-        self.__new_part_print__(f"combining {parts} chunks...", "co")
+        self.__new_part_print__(f"combining {parts} chunks...    ", "co")
         f = open(self.temp_folder + "list.txt", 'w')
         for parti in range(parts):
             file_out = f"chunk{parti}.mp4"
@@ -214,7 +216,8 @@ class Videocutter:
         self.end_timer()
         self.debugger()
         tges = time.time() - self.all_timer
-        print(f"TASK {extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s removed: {seconds_saved_all/self.video_length*100:2.1f}%\n")
+        progress(self.prog_max, self.prog_max, status="done                    ")
+        print(f"\nTASK {extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s {seconds_saved_all/self.video_length*100:2.1f}% removed\n")
 
 
     def start_timer(self, name):
@@ -233,7 +236,6 @@ class Videocutter:
     def debugger(self):
         if self.debug_mode:
             string = ', '.join([f"{t['name']}: {t['time']:4.1f}" for t in self.timers])
-            print(f"\tdebuginfo saved")
 
 
             tges = time.time() - self.all_timer
