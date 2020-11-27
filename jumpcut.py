@@ -14,12 +14,12 @@ if __name__ == '__main__':
     parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired, \".\" means none")
     parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
 
-    parser.add_argument("-d", "--dcb_threshold", type=int, default=16, help="the threshold accepted as \"silence\" in dcb")
-    parser.add_argument("-k", "--keep_silence", type=float, default=200, help="amount of distance from silence to audio in ms")
+    parser.add_argument("-d", "--dcb_threshold", type=int, default=14, help="the threshold accepted as \"silence\" in dcb")
+    parser.add_argument("-k", "--keep_silence", type=int, default=200, help="amount of distance from silence to audio in ms")
     parser.add_argument("-l", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
     parser.add_argument("-s", "--seek_step", type=int, default=10, help="the audio step size in ms")
     parser.add_argument("-c", "--chunksize", type=int, default=200, help="the videopart chunk size in seconds which the video is split before cutting")
-    parser.add_argument("-p", "--parallel_max", type=str, default=4, help="maximum of parallel running jobs")
+    parser.add_argument("-p", "--parallel_max", type=str, default=2, help="maximum of parallel running jobs")
     parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given")
 
     args = parser.parse_args()

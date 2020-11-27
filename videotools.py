@@ -179,6 +179,8 @@ class Videocutter:
             workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
 
         unstarted = workers.copy()
+        # debuginfo = []
+        # debugtimer = time.time()
         while True:
             running = list(filter(lambda w: w.is_alive(), workers))
 
@@ -192,10 +194,17 @@ class Videocutter:
                 prog += w.value
             self.prog_val = prog
 
+            # debuginfo.append((time.time()-debugtimer, self.prog_val / self.prog_max))
             progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
             if len(unstarted)+len(running) == 0:
                 break
             time.sleep(1)
+
+        # debugf = open("./text.txt", "a")
+        # debugf.write(f"\n{self.input_file}\n")
+        # for t, p in debuginfo:
+        #     debugf.write(f"{t}\t{p}\n")
+        # debugf.close()
 
         for w in workers:
             w.join()
