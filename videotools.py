@@ -9,15 +9,27 @@ import math
 import sys
 
 # -------------------------------------------------- FUNCTIONS
+_max_str_len = 0
+
+def print_manual_reset():
+    global _max_str_len
+    _max_str_len = 0
+
+def print_manual(s):
+    global _max_str_len
+    _max_str_len = max(len(s), _max_str_len)
+    sys.stdout.write("\r"+s.ljust(_max_str_len))
+    sys.stdout.flush()
+
+def progress_reset():
+    print_manual_reset() 
 
 def progress(count, total, status='', bar_len=50):
     filled_len = int(round(bar_len * count / float(total)))
 
     percents = round(100.0 * count / float(total), 1)
     bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s : %s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
+    print_manual('[%s] %s%s : %s' % (bar, percents, '%', status))
 
 # ------------------------- file/directory
 
@@ -45,11 +57,6 @@ def create_clear_path(s):
 def secure_path(s):
     if not os.path.exists(s):
         create_path(s)
-
-
-def output_name(name):
-    dot_index = name.rfind(".")
-    return name[:dot_index] + "_ALTERED" + name[dot_index:]
 
 def extract_filename(path):
     return os.path.splitext(os.path.basename(path))[0]
@@ -145,6 +152,7 @@ class Videocutter:
         self.start_timer(timer_name)
 
     def work(self):
+        progress_reset()
         print(f"TASK {extract_filename(self.input_file)}")
         self.all_timer = time.time()
 
@@ -213,7 +221,7 @@ class Videocutter:
             seconds_saved_all += s.value
 
         # ------------------------------------------------------------ co: combine chunks
-        self.__new_part_print__(f"combining {parts} chunks...    ", "co")
+        self.__new_part_print__(f"combining {parts} chunks...", "co")
         f = open(self.temp_folder + "list.txt", 'w')
         for parti in range(parts):
             file_out = f"chunk{parti}.mp4"
@@ -225,7 +233,7 @@ class Videocutter:
         self.end_timer()
         self.debugger()
         tges = time.time() - self.all_timer
-        progress(self.prog_max, self.prog_max, status="done                    ")
+        progress(self.prog_max, self.prog_max, status="done")
         print(f"\nTASK {extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s {seconds_saved_all/self.video_length*100:2.1f}% removed\n")
 
 
