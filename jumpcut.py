@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument("-sl", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
     parser.add_argument("-ss", "--seek_step", type=int, default=10, help="the audio step size in ms")
     parser.add_argument("-cs", "--chunksize", type=int, default=200, help="the videopart chunk size in seconds in which the video is split before cutting")
-    parser.add_argument("-pm", "--parallel_max", type=str, default=2, help="maximum of parallel running jobs")
+    parser.add_argument("-p", "--parallel_max", type=int, default=1, help="maximum of parallel running jobs")
     parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given and stops deletion of temp-files")
 
     args = parser.parse_args()

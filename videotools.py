@@ -18,7 +18,7 @@ def print_manual_reset():
 def print_manual(s):
     global _max_str_len
     _max_str_len = max(len(s), _max_str_len)
-    sys.stdout.write("\r"+s.ljust(_max_str_len))
+    sys.stdout.write(" "+s.ljust(_max_str_len)+"\r")
     sys.stdout.flush()
 
 def progress_reset():
@@ -234,7 +234,7 @@ class Videocutter:
         self.debugger()
         tges = time.time() - self.all_timer
         progress(self.prog_max, self.prog_max, status="done")
-        print(f"\nTASK {extract_filename(self.input_file)} done in {round(tges,1)}s, {seconds_saved_all:.1f}s {seconds_saved_all/self.video_length*100:2.1f}% removed\n")
+        print(f"\nTASK {extract_filename(self.input_file)} done in {round(tges,1)}s ({round(self.video_length/tges,1)}x), {seconds_saved_all:.1f}s {seconds_saved_all/self.video_length*100:2.1f}% removed\n")
 
 
     def start_timer(self, name):
