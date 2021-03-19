@@ -1,112 +1,96 @@
+import os
+import sys
+import time
 import argparse
 
-import os
-import time
-import shutil
+from videotools import *
 
-from silencer import *
+if __name__ == '__main__':
+    # -------------------------------------------------- ARGS
+    parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
+    parser.add_argument("-i", "--input_file", type=str, help="the video file you want modified")
+    parser.add_argument("-o", "--output_file", type=str, help="the output file")
+    parser.add_argument("-id", "--input_directory", type=str, default="INPUT/", help="the input directory")
+    parser.add_argument("-od", "--output_directory", type=str, default="OUTPUT/", help="the output directory")
+    parser.add_argument("-a", "--output_append", type=str, default="_cut", help="changes the ending of outputfile if desired, \".\" means none")
+    parser.add_argument("-t", "--temp_directory", type=str, default="TEMP/", help="the temp directory")
+    parser.add_argument("-c", "--check_existing", type=bool, default=False, help="checks for every file if the outputfile already exists. If yes, the file will be skipped")
 
-def deletePath(s):
-    try:  
-        shutil.rmtree(s,ignore_errors=False)
-    except OSError:  
-        print ("Deletion of the directory %s failed" % s)
-        print(OSError)
+    parser.add_argument("-dt", "--dcb_threshold", type=int, default=14, help="the threshold accepted as \"silence\" in dcb")
+    parser.add_argument("-ks", "--keep_silence", type=int, default=200, help="amount of distance from silence to audio in ms")
+    parser.add_argument("-sl", "--silent_length", type=int, default=500, help="the miminum amount of silence in ms")
+    parser.add_argument("-ss", "--seek_step", type=int, default=10, help="the audio step size in ms")
+    parser.add_argument("-cs", "--chunksize", type=int, default=200, help="the videopart chunk size in seconds in which the video is split before cutting")
+    parser.add_argument("-p", "--parallel_max", type=int, default=1, help="maximum of parallel running jobs")
+    parser.add_argument("-dm", "--debug_mode", type=str, default="", help="enables debug information to file given and stops deletion of temp-files")
 
-def createPath(s):
-    if os.path.exists(s):
-        deletePath(s)
-    try:  
-        os.mkdir(s)
-    except OSError:  
-        assert False, "Creation of the directory %s failed. (The TEMP folder may already exist. Delete or rename it, and try again.)"
+    args = parser.parse_args()
+    INPUT_FILE = args.input_file
+    OUTPUT_FILE = args.output_file
+    INPUT_DIR = args.input_directory
+    OUTPUT_DIR = args.output_directory
+    OUTPUT_APPEND = args.output_append
+    TEMP_DIR = args.temp_directory
+    CHECK_EXISTING = args.check_existing
+
+    DCB_THRESHOLD = args.dcb_threshold
+    KEEP_SILENCE = args.keep_silence / 1000
+    SILENT_LENGTH = args.silent_length
+    SEEK_STEP = args.seek_step
+    CHUNKSIZE = args.chunksize
+    PARALLEL_MAX = args.parallel_max
+
+    INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
+    DEBUG_MODE = args.debug_mode
+    OUTPUT_FILES_NAMES = []
+
+    #make sure directories end with "/"
+    [INPUT_DIR, OUTPUT_DIR, TEMP_DIR] = [(a+"/" if a[-1] != "/" else a) if a else a for a in [INPUT_DIR, OUTPUT_DIR, TEMP_DIR]]
+    #check if input is given
+    assert (INPUT_FILE is not None) or (len(INPUT_FILES_NAMES) > 0), "why u put no input file, that dum"
+    #check if append is set to nothing (as the input "" is not accepted by the parser)
+    OUTPUT_APPEND = "" if OUTPUT_APPEND == "." else OUTPUT_APPEND
+
+    t = time.time()
+    # -------------------------------------------------- creates arr of Vid class
+    print(f"Initializing...")
+
+    video_arr = []
+    print_manual_reset()
+    def add_video(input_file, output_file, temp_folder):
+        if CHECK_EXISTING and os.path.exists(output_file):
+            return
+        print_manual(extract_filename(output_file))
+        video_arr.append(Videocutter(   input_file=input_file, 
+                                        output_file=output_file, 
+                                        dcb_threshold=DCB_THRESHOLD, 
+                                        keep_silence=KEEP_SILENCE, 
+                                        silent_length=SILENT_LENGTH, 
+                                        seek_step=SEEK_STEP, 
+                                        temp_folder=temp_folder, 
+                                        chunksize=CHUNKSIZE, 
+                                        parallel_max=PARALLEL_MAX, 
+                                        debug_mode=DEBUG_MODE))
+
+    if INPUT_FILE is not None:
+        # Filemode
+        if OUTPUT_FILE is None:
+            OUTPUT_FILE = customize_filename(INPUT_FILE, OUTPUT_APPEND)
+        add_video(INPUT_FILE, OUTPUT_FILE, TEMP_DIR)
+    elif len(INPUT_FILES_NAMES) > 0:
+        # Foldermode
+        secure_path(OUTPUT_DIR)
+        for input_filename in INPUT_FILES_NAMES:
+            filename = extract_filename(input_filename)
+            output_filename = customize_filename(input_filename, OUTPUT_APPEND)
+            add_video(INPUT_DIR+input_filename, OUTPUT_DIR+output_filename, TEMP_DIR[:-1]+"-"+filename+"/")
+
+    print(f"\n{len(video_arr)} tasks created:\n")
+
+    for vid in video_arr:
+        vid.work()
 
 
 
-# -------------------------------------------------- ARGS
-
-parser = argparse.ArgumentParser(description="Modifies a video file to cut out silence.")
-parser.add_argument("-i", "--input_file",       type = str,                      help = "the video file you want modified")
-parser.add_argument("-o", "--output_file",      type = str,                      help = "the output file")
-parser.add_argument("-t", "--temp_path",        type = str,     default="TEMP/", help = "the temp directory")
-parser.add_argument("-d", "--dcb_threshold",    type = int,     default=10,      help = "the threshold accepted as \"silence\" in dcb")
-parser.add_argument("-k", "--keep_silence",     type = float,   default=0.2,     help = "amount of distance from silence to audio in s")
-parser.add_argument("-l", "--silent_length",    type = int,     default=500,     help = "the miminum amount of silence in ms")
-parser.add_argument("-s", "--seek_step",        type = int,     default=10,      help = "the audio step size in ms")
-
-args = parser.parse_args()
-
-TEMP_PATH =  args.temp_path
-INPUT_FILE = args.input_file
-OUTPUT_FILE = args.output_file
-DCB_THRESHOLD = args.dcb_threshold
-KEEP_SILENCE = args.keep_silence
-SILENT_LENGTH = args.silent_length
-SEEK_STEP = args.seek_step
-
-assert INPUT_FILE is not None, "why u put no input file, that dum"
-if OUTPUT_FILE is None:
-    dotIndex = INPUT_FILE.rfind(".")
-    OUTPUT_FILE = INPUT_FILE[:dotIndex]+"_ALTERED"+INPUT_FILE[dotIndex:]
-
-t = time.time()
-# -------------------------------------------------- CREATE TEMP FOLDER
-
-createPath(TEMP_PATH)
-video_length = get_video_length(INPUT_FILE)
-print(f"    cutting Video of length {video_length}")
-
-# -------------------------------------------------- EXTRACT AUDIO
-
-ffmpeg_get_audio(INPUT_FILE, TEMP_PATH + "audio.wav")
-
-# -------------------------------------------------- FIND SILENCE
-
-arr_silence_ms = silencer(TEMP_PATH + "audio.wav", DCB_THRESHOLD, SILENT_LENGTH, SEEK_STEP)
-print(f"\n    detectet {len(arr_silence_ms)} silences\n")
-
-# -------------------------------------------------- CREATE AUDIO ARRAY
-
-arr_silence_ms.append((video_length, video_length))
-arr_audio_s = []
-last = 0.0
-for x, y in arr_silence_ms:
-    start = last
-    end = x/1000
-    if end-start > 0.01:
-        start = max(start-KEEP_SILENCE, 0)
-        end = min(end+KEEP_SILENCE, video_length)
-        arr_audio_s.append((round(start, 3), round(end, 3)))
-    last = y/1000
-
-# for i in range(len(arr_audio_s)):
-#     print(str(arr_silence_ms[i]) + " -> " + str(arr_audio_s[i]))
-
-print(f"\n    created  {len(arr_audio_s)} parts\n")
-
-# -------------------------------------------------- CUT CHUNKS FROM ORIGINAL
-
-i = 0
-f = open(TEMP_PATH + "list.txt", "a")
-for start, end in arr_audio_s:
-    print(f"\n    task {i} cutting...\n")
-    name = "chunk" + str(i) + ".mp4"
-    ffmpeg_cut_from_original(INPUT_FILE, TEMP_PATH + name, start, end)
-    f.writelines("file '" + name + "'\n")
-    i+=1
-f.close()
-
-# -------------------------------------------------- COMBINE CHUNKS
-time.sleep(1)
-print(f"\n    combining...\n")
-ffmpeg_combile(TEMP_PATH + "list.txt", OUTPUT_FILE)
-
-# -------------------------------------------------- DELETE TEMP FOLDER
-
-print(f"\n    deleting temp files...\n")
-deletePath(TEMP_PATH)
-
-# -------------------------------------------------- FINISHED
-
-Tnow = time.time()-t
-print("\nfinished in %f seconds" % (Tnow))
+    Tnow = time.time() - t
+    print(f"Finished in {round(Tnow, 2)} seconds")
