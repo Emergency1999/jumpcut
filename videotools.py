@@ -195,7 +195,7 @@ class Videocutter:
             if len(running) < self.parallel_max and len(unstarted)>0:
                 running.append(unstarted.pop())
                 running[-1].start()
-                time.sleep(1)
+                time.sleep(0.15)
             
             prog = 0
             for w in work_progress:
@@ -206,7 +206,7 @@ class Videocutter:
             progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
             if len(unstarted)+len(running) == 0:
                 break
-            time.sleep(1)
+            time.sleep(0.1)
 
         # debugf = open("./text.txt", "a")
         # debugf.write(f"\n{self.input_file}\n")
