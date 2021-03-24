@@ -85,8 +85,8 @@ if __name__ == '__main__':
             filename = extract_filename(input_filename)
             output_filename = customize_filename(input_filename, OUTPUT_APPEND)
             add_video(INPUT_DIR+input_filename, OUTPUT_DIR+output_filename, TEMP_DIR[:-1]+"-"+filename+"/")
-
-    print(f"\n{len(video_arr)} tasks created:\n")
+    print_manual("")
+    print(f"{len(video_arr)} tasks created:\n")
 
     for vid in video_arr:
         vid.work()

@@ -1,8 +1,13 @@
 # HOWTO install
 
+- install ffmpeg
+- install sox
 - install python3
-- install packages:
+- install packages pydub moviepy
+
+
 ```
+sudo apt-get install ffmpeg sox python3 -y
 pip3 install pydub moviepy 
 
 ```
@@ -23,7 +28,7 @@ python3 jumpcut.py [args]
 | -dt | --dcb_threshold    | int  | 14        | the threshold accepted as \"silence\" in dcb                                          |
 | -ks | --keep_silence     | int  | 200       | amount of distance from silence to audio in ms                                        |
 | -sl | --silent_length    | int  | 500       | the miminum amount of silence in ms                                                   |
-| -ss | --seek_step        | int  | 10        | the audio step size in ms                                                             |
+| -ss | --seek_step        | int  | 10         | the audio step size in ms                                                             |
 | -cs | --chunksize        | int  | 200       | the videopart chunk size in seconds in which the video is split before cutting        |
 | -p  | --parallel_max     | int  | 1         | maximum of parallel running jobs                                                      |
 | -dm | --debug_mode       | str  | ""        | enables debug information to file given and stops deletion of temp-files              |
