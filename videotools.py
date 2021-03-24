@@ -80,14 +80,14 @@ def get_video_length(file_name):
 
 # -------------------------------------------------- Chunkcutter
 
-def Chunkcutter(file_in, file_out, file_audio, file_script, dcb_threshold, keep_silence, silent_length, seek_step, return_progress, return_seconds_saved):
+def Chunkcutter(file_in, file_out, file_audio_comp, file_audio_norm, file_script, dcb_threshold, keep_silence, silent_length, seek_step, return_progress, return_seconds_saved):
     file_in_len = get_video_length(file_in)
     
     # ------------------------------------------------------------ e : extract audio
-    ffmpeg_get_audio(file_in, file_audio)
+    ffmpeg_get_audio_comp_norm(file_in, file_audio_comp, file_audio_norm)
     return_progress.value = 0.02
     # ------------------------------------------------------------ d : detect silence
-    arr_silence_ms = silence_finder(file_audio, dcb_threshold, silent_length, seek_step)
+    arr_silence_ms = silence_finder(file_audio_norm, dcb_threshold, silent_length, seek_step)
     arr_silence_ms.append([file_in_len*1000, file_in_len*1000])
 
     return_progress.value = 0.15
@@ -105,7 +105,8 @@ def Chunkcutter(file_in, file_out, file_audio, file_script, dcb_threshold, keep_
         last = y / 1000
 
     # ------------------------------------------------------------ c : cut chunk
-    file_out_len = ffmpeg_cut_array(   file_input=file_in,
+    file_out_len = ffmpeg_cut_array(    videofile_input=file_in,
+                                        audiofile_input=file_audio_norm,
                                         file_output=file_out, 
                                         temp_file=file_script, 
                                         timearray=arr_audio_s)
@@ -177,14 +178,15 @@ class Videocutter:
             # print(f"\tchunk {parti+1}/{parts}")
             file_in = self.temp_folder + f"prechunk{parti}.mp4"
             file_out = self.temp_folder + f"chunk{parti}.mp4"
-            file_audio = self.temp_folder + f"audio{parti}.wav"
+            file_audio_comp = self.temp_folder + f"audio{parti}_comp.wav"
+            file_audio_norm = self.temp_folder + f"audio{parti}_norm.wav"
             file_script = self.temp_folder + f"script{parti}.txt"
 
             return_progress = Value('d', 0.0)
             work_progress.append(return_progress)
             val = Value('d', 0.0)
             seconds_saved.append(val)
-            workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
+            workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio_comp, file_audio_norm, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
 
         unstarted = workers.copy()
         # debuginfo = []

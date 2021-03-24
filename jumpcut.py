@@ -40,9 +40,10 @@ if __name__ == '__main__':
     CHUNKSIZE = args.chunksize
     PARALLEL_MAX = args.parallel_max
 
-    INPUT_FILES_NAMES = os.listdir(INPUT_DIR)
+    if INPUT_FILE is None:
+        INPUT_FILES_NAMES = os.listdir(INPUT_DIR) 
+        OUTPUT_FILES_NAMES = []
     DEBUG_MODE = args.debug_mode
-    OUTPUT_FILES_NAMES = []
 
     #make sure directories end with "/"
     [INPUT_DIR, OUTPUT_DIR, TEMP_DIR] = [(a+"/" if a[-1] != "/" else a) if a else a for a in [INPUT_DIR, OUTPUT_DIR, TEMP_DIR]]
@@ -84,8 +85,8 @@ if __name__ == '__main__':
             filename = extract_filename(input_filename)
             output_filename = customize_filename(input_filename, OUTPUT_APPEND)
             add_video(INPUT_DIR+input_filename, OUTPUT_DIR+output_filename, TEMP_DIR[:-1]+"-"+filename+"/")
-
-    print(f"\n{len(video_arr)} tasks created:\n")
+    print_manual("")
+    print(f"{len(video_arr)} tasks created:\n")
 
     for vid in video_arr:
         vid.work()
