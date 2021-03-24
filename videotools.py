@@ -65,6 +65,23 @@ def customize_filename(path, appendstr):
     a, b = os.path.splitext(path)
     return a + appendstr + b
 
+def get_filesize(path):
+    return os.path.getsize(path)
+
+def fancy_fs(s):
+    si = ["B", "KB", "MB", "GB", "TB"]
+    i = 0
+    while(s>1024):
+        i+=1
+        s/=1024
+    if s>=1000:
+        return f"{s:.0f}{si[i]}"
+    if s>=100:
+        return f"{s:.1f}{si[i]}"
+    if s>=10:
+        return f"{s:.2f}{si[i]}"
+    return f"{s:.3f}{si[i]}"
+
 # ------------------------- video/audio
 
 def silence_finder(audio_wav, dcb_offset=10, silent_length=500,step_in_ms=10):
@@ -236,7 +253,9 @@ class Videocutter:
         self.debugger()
         tges = time.time() - self.all_timer
         progress(self.prog_max, self.prog_max, status="done")
-        print(f"\nTASK {extract_filename(self.input_file)} done in {round(tges,1)}s ({round(self.video_length/tges,1)}x), {seconds_saved_all:.1f}s {seconds_saved_all/self.video_length*100:2.1f}% removed\n")
+        print(f"\nTASK {extract_filename(self.input_file)} done in:{self.video_length/tges:5.1f}x {tges:.1f}s ")
+        print("removed time:".rjust(len(extract_filename(self.input_file))+14) + f"{seconds_saved_all/self.video_length*100:5.1f}% {seconds_saved_all:.1f}s")
+        print("removed size:".rjust(len(extract_filename(self.input_file))+14) + f"{(1-get_filesize(self.output_file)/get_filesize(self.input_file))*100:5.1f}% {fancy_fs(get_filesize(self.input_file)-get_filesize(self.output_file))}\n")
 
 
     def start_timer(self, name):
