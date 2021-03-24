@@ -31,6 +31,7 @@ def ffmpeg_cut_array(file_input, file_output, temp_file, timearray):
     command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -filter_complex_script \"{temp_file}\" -async 1 -safe 0 -map [v{last}] -map [a{last}] -to {full_length} \"{file_output}\""
     # print(command)
     subprocess.call(command, shell=True)
+    return full_length
 
 def ffmpeg_cut(file_input, file_output, start, end, additional_flag=""):
     command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -ss {str(start)} -to {str(end)} {additional_flag} \"{file_output}\""
@@ -38,4 +39,8 @@ def ffmpeg_cut(file_input, file_output, start, end, additional_flag=""):
 
 def ffmpeg_combine(file_input, file_output):
     command = f"ffmpeg -y -hide_banner -loglevel warning -f concat -safe 0 -i \"{file_input}\" -c copy \"{file_output}\"" #todo give option to run without -c copy to fully compress (takes longer)
+    subprocess.call(command, shell=True)
+
+def ffmpeg_segments(file_input, file_output, segment_seconds):
+    command = f"ffmpeg -y -hide_banner -loglevel warning -i \"{file_input}\" -c copy -segment_time {segment_seconds} -f segment \"{file_output}\""
     subprocess.call(command, shell=True)
