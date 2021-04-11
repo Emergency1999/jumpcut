@@ -61,6 +61,11 @@ if __name__ == '__main__':
     def add_video(input_file, output_file, temp_folder):
         if CHECK_EXISTING and os.path.exists(output_file):
             return
+        ext = os.path.splitext(input_file)[-1].lower()
+
+        if not ext in [".mkv", ".flv", ".ogg", ".avi", ".ts", ".mov", ".yuv", ".viv", ".mp4", ".m4v", ".mpg", ".mp2", ".mpeg"]:
+            return
+
         print_manual(extract_filename(output_file))
         video_arr.append(Videocutter(   input_file=input_file, 
                                         output_file=output_file, 
