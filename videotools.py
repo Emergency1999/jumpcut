@@ -174,89 +174,96 @@ class Videocutter:
         print(f"TASK {extract_filename(self.input_file)}")
         self.all_timer = time.time()
 
-        parts = math.ceil(self.video_length/(self.chunksize))
-        partlen = math.ceil(self.video_length/parts)
-        self.prog_max = parts
-        # ------------------------------------------------------------ cr: create chunks
-        self.__new_part_print__(f"creating {parts} chunks...", "cc")
-        
-        ffmpeg_segments(file_input=self.input_file,
-                        file_output=self.temp_folder + "prechunk%d.mp4",
-                        segment_seconds=partlen)
+        try:
 
-        # ------------------------------------------------------------ --: FOR (parts)
-        self.__new_part_print__(f"creating {parts} workers...", "cw")
-        workers = []
-        work_progress = []
-        seconds_saved = []
-        seconds_saved_all = 0
-        for parti in range(parts):
-            part_timer = time.time()
-            # print(f"\tchunk {parti+1}/{parts}")
-            file_in = self.temp_folder + f"prechunk{parti}.mp4"
-            file_out = self.temp_folder + f"chunk{parti}.mp4"
-            file_audio_comp = self.temp_folder + f"audio{parti}_comp.wav"
-            file_audio_norm = self.temp_folder + f"audio{parti}_norm.wav"
-            file_script = self.temp_folder + f"script{parti}.txt"
-
-            return_progress = Value('d', 0.0)
-            work_progress.append(return_progress)
-            val = Value('d', 0.0)
-            seconds_saved.append(val)
-            workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio_comp, file_audio_norm, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
-
-        unstarted = workers.copy()
-        # debuginfo = []
-        # debugtimer = time.time()
-        while True:
-            running = list(filter(lambda w: w.is_alive(), workers))
-
-            if len(running) < self.parallel_max and len(unstarted)>0:
-                running.append(unstarted.pop())
-                running[-1].start()
-                time.sleep(0.15)
+            parts = math.ceil(self.video_length/(self.chunksize))
+            partlen = math.ceil(self.video_length/parts)
+            self.prog_max = parts
+            # ------------------------------------------------------------ cr: create chunks
+            self.__new_part_print__(f"creating {parts} chunks...", "cc")
             
-            prog = 0
-            for w in work_progress:
-                prog += w.value
-            self.prog_val = prog
+            ffmpeg_segments(file_input=self.input_file,
+                            file_output=self.temp_folder + "prechunk%d.mp4",
+                            segment_seconds=partlen)
 
-            # debuginfo.append((time.time()-debugtimer, self.prog_val / self.prog_max))
-            progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
-            if len(unstarted)+len(running) == 0:
-                break
-            time.sleep(0.1)
+            # ------------------------------------------------------------ --: FOR (parts)
+            self.__new_part_print__(f"creating {parts} workers...", "cw")
+            workers = []
+            work_progress = []
+            seconds_saved = []
+            seconds_saved_all = 0
+            for parti in range(parts):
+                part_timer = time.time()
+                # print(f"\tchunk {parti+1}/{parts}")
+                file_in = self.temp_folder + f"prechunk{parti}.mp4"
+                file_out = self.temp_folder + f"chunk{parti}.mp4"
+                file_audio_comp = self.temp_folder + f"audio{parti}_comp.wav"
+                file_audio_norm = self.temp_folder + f"audio{parti}_norm.wav"
+                file_script = self.temp_folder + f"script{parti}.txt"
 
-        # debugf = open("./text.txt", "a")
-        # debugf.write(f"\n{self.input_file}\n")
-        # for t, p in debuginfo:
-        #     debugf.write(f"{t}\t{p}\n")
-        # debugf.close()
+                return_progress = Value('d', 0.0)
+                work_progress.append(return_progress)
+                val = Value('d', 0.0)
+                seconds_saved.append(val)
+                workers.append(Process(target=Chunkcutter, args=(file_in, file_out, file_audio_comp, file_audio_norm, file_script, self.dcb_threshold, self.keep_silence, self.silent_length, self.seek_step, return_progress, val)))
 
-        for w in workers:
-            w.join()
+            unstarted = workers.copy()
+            # debuginfo = []
+            # debugtimer = time.time()
+            while True:
+                running = list(filter(lambda w: w.is_alive(), workers))
 
-        for s in seconds_saved:
-            seconds_saved_all += s.value
+                if len(running) < self.parallel_max and len(unstarted)>0:
+                    running.append(unstarted.pop())
+                    running[-1].start()
+                    time.sleep(0.15)
+                
+                prog = 0
+                for w in work_progress:
+                    prog += w.value
+                self.prog_val = prog
 
-        # ------------------------------------------------------------ co: combine chunks
-        self.__new_part_print__(f"combining {parts} chunks...", "co")
-        f = open(self.temp_folder + "list.txt", 'w')
-        for parti in range(parts):
-            file_out = f"chunk{parti}.mp4"
-            f.write(f"file '{file_out}'\n")
-        f.close()
-        ffmpeg_combine(self.temp_folder + "list.txt", self.output_file)
+                # todo error handling
 
-        # ------------------------------------------------------------ --: end
-        self.end_timer()
-        self.debugger()
-        tges = time.time() - self.all_timer
-        progress(self.prog_max, self.prog_max, status="done")
-        print(f"\nTASK {extract_filename(self.input_file)} done in:{self.video_length/tges:5.1f}x {tges:.1f}s ")
-        print("removed time:".rjust(len(extract_filename(self.input_file))+14) + f"{seconds_saved_all/self.video_length*100:5.1f}% {seconds_saved_all:.1f}s")
-        print("removed size:".rjust(len(extract_filename(self.input_file))+14) + f"{(1-get_filesize(self.output_file)/get_filesize(self.input_file))*100:5.1f}% {fancy_fs(get_filesize(self.input_file)-get_filesize(self.output_file))}\n")
+                # debuginfo.append((time.time()-debugtimer, self.prog_val / self.prog_max))
+                progress(self.prog_val, self.prog_max, status=f'{len(running)} jobs running, {len(unstarted):2} left')
+                if len(unstarted)+len(running) == 0:
+                    break
+                time.sleep(0.1)
 
+            # debugf = open("./text.txt", "a")
+            # debugf.write(f"\n{self.input_file}\n")
+            # for t, p in debuginfo:
+            #     debugf.write(f"{t}\t{p}\n")
+            # debugf.close()
+
+            for w in workers:
+                w.join() 
+
+            for s in seconds_saved:
+                seconds_saved_all += s.value
+
+            # ------------------------------------------------------------ co: combine chunks
+            self.__new_part_print__(f"combining {parts} chunks...", "co")
+            f = open(self.temp_folder + "list.txt", 'w')
+            for parti in range(parts):
+                file_out = f"chunk{parti}.mp4"
+                f.write(f"file '{file_out}'\n")
+            f.close()
+            ffmpeg_combine(self.temp_folder + "list.txt", self.output_file)
+
+            # ------------------------------------------------------------ --: end
+            self.end_timer()
+            self.debugger()
+            tges = time.time() - self.all_timer
+            progress(self.prog_max, self.prog_max, status="done")
+            print(f"\nTASK {extract_filename(self.input_file)} done in:{self.video_length/tges:5.1f}x {tges:.1f}s ")
+            print("removed time:".rjust(len(extract_filename(self.input_file))+14) + f"{seconds_saved_all/self.video_length*100:5.1f}% {seconds_saved_all:.1f}s")
+            print("removed size:".rjust(len(extract_filename(self.input_file))+14) + f"{(1-get_filesize(self.output_file)/get_filesize(self.input_file))*100:5.1f}% {fancy_fs(get_filesize(self.input_file)-get_filesize(self.output_file))}\n")
+        except Exception as inst:
+            print(f"\n\033[91mTASK {extract_filename(self.input_file)} failed:")
+            print(inst)
+            print("\033[0m\n")
 
     def start_timer(self, name):
         self.end_timer()
